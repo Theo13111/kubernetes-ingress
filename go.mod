@@ -3,7 +3,7 @@ module github.com/nginxinc/kubernetes-ingress
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go-v2/config v1.8.3
+	github.com/aws/aws-sdk-go-v2/config v1.9.0
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.5.2
 	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang/glog v1.0.0
@@ -12,8 +12,8 @@ require (
 	github.com/nginxinc/nginx-prometheus-exporter v0.9.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spiffe/go-spiffe v1.1.0
-	k8s.io/api v0.22.2
-	k8s.io/apimachinery v0.22.2
+	k8s.io/api v0.22.3
+	k8s.io/apimachinery v0.22.3
 	k8s.io/client-go v0.22.2
 	k8s.io/code-generator v0.22.2
 	sigs.k8s.io/controller-tools v0.7.0
@@ -22,14 +22,14 @@ require (
 require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.9.2 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.4.3 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.6.0 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.4.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.7.2 // indirect
-	github.com/aws/smithy-go v1.8.0 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.10.0 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.5.0 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.7.0 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.4.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.5.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.8.0 // indirect
+	github.com/aws/smithy-go v1.8.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
