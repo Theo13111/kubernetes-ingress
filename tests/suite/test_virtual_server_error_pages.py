@@ -1,16 +1,18 @@
 import json
+from unittest import mock
+from unittest.mock import Mock
 
 import pytest
 import requests
 from kubernetes.client.rest import ApiException
 from settings import TEST_DATA
-from suite.custom_assertions import (
+from suite.utils.custom_assertions import (
     assert_event_starts_with_text_and_contains_errors,
     assert_vs_conf_not_exists,
     wait_and_assert_status_code,
 )
-from suite.resources_utils import get_events, get_first_pod_name, wait_before_test
-from suite.vs_vsr_resources_utils import get_vs_nginx_template_conf, patch_virtual_server_from_yaml
+from suite.utils.resources_utils import get_events, get_first_pod_name, wait_before_test
+from suite.utils.vs_vsr_resources_utils import get_vs_nginx_template_conf, patch_virtual_server_from_yaml
 
 
 @pytest.mark.vs
@@ -29,9 +31,21 @@ class TestVSErrorPages:
         wait_and_assert_status_code(
             307, virtual_server_setup.backend_1_url, virtual_server_setup.vs_host, allow_redirects=False
         )
-        resp = requests.get(
-            virtual_server_setup.backend_1_url, headers={"host": virtual_server_setup.vs_host}, allow_redirects=False
-        )
+        retry = 0
+        while retry < 5:
+            wait_before_test()
+            try:
+                resp = requests.get(
+                    virtual_server_setup.backend_1_url,
+                    headers={"host": virtual_server_setup.vs_host},
+                    allow_redirects=False,
+                )
+                print(f"redirect to uri: {resp.next.url}")
+            except AttributeError as e:
+                print(f"Exception occured: {e}")
+                retry = +1
+                continue
+            break
         assert f"http://{virtual_server_setup.vs_host}/error.html" in resp.next.url
 
     def test_return_strategy(self, kube_apis, crd_ingress_controller, virtual_server_setup):

@@ -6,6 +6,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "nginx-ingress.labels" . | nindent 4 }}
+{{- if .Values.controller.annotations }}
+  annotations: {{ toYaml .Values.controller.annotations | nindent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.controller.replicaCount }}
   selector:
@@ -163,6 +166,9 @@ spec:
           - -ingress-class={{ .Values.controller.ingressClass }}
 {{- if .Values.controller.watchNamespace }}
           - -watch-namespace={{ .Values.controller.watchNamespace }}
+{{- end }}
+{{- if .Values.controller.watchSecretNamespace }}
+          - -watch-secret-namespace={{ .Values.controller.watchSecretNamespace }}
 {{- end }}
           - -health-status={{ .Values.controller.healthStatus }}
           - -health-status-uri={{ .Values.controller.healthStatusURI }}

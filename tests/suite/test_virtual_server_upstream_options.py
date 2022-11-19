@@ -2,7 +2,7 @@ import pytest
 import requests
 from kubernetes.client.rest import ApiException
 from settings import TEST_DATA
-from suite.custom_assertions import (
+from suite.utils.custom_assertions import (
     assert_event,
     assert_event_and_get_count,
     assert_event_count_increased,
@@ -10,9 +10,9 @@ from suite.custom_assertions import (
     assert_response_codes,
     assert_vs_conf_not_exists,
 )
-from suite.custom_resources_utils import generate_item_with_upstream_options
-from suite.resources_utils import get_events, get_first_pod_name, replace_configmap_from_yaml, wait_before_test
-from suite.vs_vsr_resources_utils import (
+from suite.utils.custom_resources_utils import generate_item_with_upstream_options
+from suite.utils.resources_utils import get_events, get_first_pod_name, replace_configmap_from_yaml, wait_before_test
+from suite.utils.vs_vsr_resources_utils import (
     get_vs_nginx_template_conf,
     patch_virtual_server,
     patch_virtual_server_from_yaml,
@@ -624,6 +624,7 @@ class TestOptionsSpecificForPlus:
         assert_event(vs_event_text, vs_events)
         assert "slow_start" not in config
 
+    @pytest.mark.flaky(max_runs=3)
     def test_validation_flow(
         self, kube_apis, ingress_controller_prerequisites, crd_ingress_controller, virtual_server_setup
     ):

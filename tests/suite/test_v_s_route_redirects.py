@@ -2,14 +2,14 @@ import pytest
 import requests
 from kubernetes.client.rest import ApiException
 from settings import TEST_DATA
-from suite.custom_assertions import (
+from suite.utils.custom_assertions import (
     assert_event_and_get_count,
     assert_event_count_increased,
     assert_event_starts_with_text_and_contains_errors,
     wait_and_assert_status_code,
 )
-from suite.resources_utils import get_events, get_first_pod_name, wait_before_test
-from suite.vs_vsr_resources_utils import get_vs_nginx_template_conf, patch_v_s_route_from_yaml
+from suite.utils.resources_utils import get_events, get_first_pod_name, wait_before_test
+from suite.utils.vs_vsr_resources_utils import get_vs_nginx_template_conf, patch_v_s_route_from_yaml
 
 
 @pytest.mark.vsr
@@ -78,6 +78,7 @@ class TestVSRRedirects:
         assert_event_count_increased(vs_event_text, initial_count_vs, new_events_ns)
         assert_event_count_increased(vsr_event_text, initial_count_vsr, new_events_ns)
 
+    @pytest.mark.flaky(max_runs=3)
     def test_validation_flow(self, kube_apis, crd_ingress_controller, v_s_route_setup):
         req_host = f"{v_s_route_setup.public_endpoint.public_ip}:{v_s_route_setup.public_endpoint.port}"
         req_url = f"http://{req_host}{v_s_route_setup.route_s.paths[0]}"

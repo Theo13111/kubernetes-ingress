@@ -26,7 +26,7 @@ This step is required if you're installing the chart using its sources. Addition
 
 1. Clone the Ingress Controller repo:
     ```console
-    $ git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v2.4.0
+    $ git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v2.4.1
     ```
 2. Change your working directory to /deployments/helm-chart:
     ```console
@@ -159,7 +159,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |``controller.logLevel`` | The log level of the Ingress Controller. | 1 |
 |``controller.image.repository`` | The image repository of the Ingress Controller. | nginx/nginx-ingress |
 |``controller.image.digest`` | The digest of the Ingress Controller image. Digest has precedence over tag | None |
-|``controller.image.tag`` | The tag of the Ingress Controller image. | 2.4.0 |
+|``controller.image.tag`` | The tag of the Ingress Controller image. | 2.4.1 |
 |``controller.image.pullPolicy`` | The pull policy for the Ingress Controller image. | IfNotPresent |
 |``controller.lifecycle`` | The lifecycle of the Ingress Controller pods. | {} |
 |``controller.customConfigMap`` | The name of the custom ConfigMap used by the Ingress Controller. If set, then the default config is ignored. | "" |
@@ -185,6 +185,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |``controller.ingressClass`` | A class of the Ingress Controller. An IngressClass resource with the name equal to the class must be deployed. Otherwise, the Ingress Controller will fail to start. The Ingress Controller only processes resources that belong to its class - i.e. have the "ingressClassName" field resource equal to the class. The Ingress Controller processes all the VirtualServer/VirtualServerRoute/TransportServer resources that do not have the "ingressClassName" field for all versions of kubernetes. | nginx |
 |``controller.setAsDefaultIngress`` | New Ingresses without an ingressClassName field specified will be assigned the class specified in `controller.ingressClass`. | false |
 |``controller.watchNamespace`` | Comma separated list of namespaces the Ingress Controller should watch for resources. By default the Ingress Controller watches all namespaces. Please note that if configuring multiple namespaces using the Helm cli `--set` option, the string needs to wrapped in double quotes and the commas escaped using a backslash - e.g. ``--set controller.watchNamespace="default\,nginx-ingress"``. | "" |
+|``controller.watchSecretNamespace`` | Comma separated list of namespaces the Ingress Controller should watch for resources of type Secret. If this arg is not configured, the Ingress Controller watches the same namespaces for all resources. See `watch-namespace`. Please note that if configuring multiple namespaces using the Helm cli `--set` option, the string needs to wrapped in double quotes and the commas escaped using a backslash - e.g. ``--set controller.watchSecretNamespace="default\,nginx-ingress"``. | "" |
 |``controller.enableCustomResources`` | Enable the custom resources. | true |
 |``controller.enablePreviewPolicies`` | Enable preview policies. This parameter is deprecated. To enable OIDC Policies please use ``controller.enableOIDC`` instead. | false |
 |``controller.enableOIDC`` | Enable OIDC policies. | false |

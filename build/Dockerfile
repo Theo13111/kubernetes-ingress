@@ -6,32 +6,27 @@ ARG DEBIAN_VERSION=bullseye-slim
 
 
 ############################################# Base images containing libs for Opentracing #############################################
-FROM opentracing/nginx-opentracing:nginx-1.23.1 as opentracing-lib
-FROM opentracing/nginx-opentracing:nginx-1.23.1-alpine as alpine-opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.23.2 as opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.23.2-alpine as alpine-opentracing-lib
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.23.1 AS debian
+FROM nginx:1.23.2 AS debian
 
 RUN --mount=type=bind,from=opentracing-lib,target=/tmp/ot/ \
 	apt-get update \
 	&& apt-get install --no-install-recommends --no-install-suggests -y libcap2-bin \
-	# temp fix for CVE-2022-40674
-	&& apt-get install -y libexpat1 \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& cp -av /tmp/ot/usr/local/lib/libopentracing.so* /tmp/ot/usr/local/lib/libjaegertracing*so* /tmp/ot/usr/local/lib/libzipkin*so* /tmp/ot/usr/local/lib/libdd*so* /tmp/ot/usr/local/lib/libyaml*so* /usr/local/lib/ \
 	&& cp -av /tmp/ot/usr/lib/nginx/modules/ngx_http_opentracing_module.so /usr/lib/nginx/modules/ \
-	&& ldconfig \
-	&& echo $NGINX_VERSION > nginx_version
+	&& ldconfig
 
 
 ############################################# Base image for Alpine #############################################
-FROM nginx:1.23.1-alpine AS alpine
+FROM nginx:1.23.2-alpine AS alpine
 
 RUN --mount=type=bind,from=alpine-opentracing-lib,target=/tmp/ot/ \
 	apk add --no-cache libcap libstdc++ \
-	# temp fix for CVE-2022-3209 and CVE-2022-35252
-	&& apk upgrade --no-cache libxml2 curl libcurl \
 	&& cp -av /tmp/ot/usr/local/lib/libopentracing.so* /tmp/ot/usr/local/lib/libjaegertracing*so* /tmp/ot/usr/local/lib/libzipkin*so* /tmp/ot/usr/local/lib/libdd*so* /tmp/ot/usr/local/lib/libyaml*so* /usr/local/lib/ \
 	&& cp -av /tmp/ot/usr/lib/nginx/modules/ngx_http_opentracing_module.so /usr/lib/nginx/modules/ \
 	&& ldconfig /usr/local/lib/
@@ -91,8 +86,6 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& printf "%s\n" "deb https://pkgs.nginx.com/app-protect/${NGINX_PLUS_VERSION}/debian ${DEBIAN_VERSION} nginx-plus" \
 	"deb https://pkgs.nginx.com/app-protect-security-updates/debian ${DEBIAN_VERSION} nginx-plus" > /etc/apt/sources.list.d/nginx-app-protect.list \
 	&& apt-get update \
-	# temp fix for CVE-2022-37434 and DLA-3112-1
-	&& apt-get install zlib1g libbz2-1.0 \
 	&& apt-get install --no-install-recommends --no-install-suggests -y app-protect app-protect-attack-signatures app-protect-threat-campaigns \
 	&& apt-get purge --auto-remove -y curl; \
 	fi \
@@ -111,10 +104,9 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for UBI #############################################
-FROM redhat/ubi8 AS ubi-base
+FROM nginxcontrib/nginx:1.23.2-ubi AS ubi
 ARG IC_VERSION
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 LABEL name="NGINX Ingress Controller" \
 	maintainer="kubernetes@nginx.com" \
 	vendor="NGINX Inc" \
@@ -125,34 +117,25 @@ LABEL name="NGINX Ingress Controller" \
 	io.k8s.description="The NGINX Ingress Controller is an application that runs in a cluster and configures an HTTP load balancer according to Ingress resources." \
 	io.openshift.tags="nginx,ingress-controller,ingress,controller,kubernetes,openshift"
 
-RUN dnf --nodocs install -y shadow-utils ca-certificates \
-	&& groupadd --system --gid 101 nginx \
-	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 101 nginx
-
 COPY --link --chown=101:0 LICENSE /licenses/
 
-
-############################################# Base image for UBI OSS #############################################
-FROM ubi-base AS ubi
-
-RUN --mount=type=bind,from=debian,source=/nginx_version,target=/tmp/nginx_version \
-	export NGINX_VERSION=$(</tmp/nginx_version) \
-	&& rpm --import https://nginx.org/keys/nginx_signing.key \
-	&& version=$(grep -E -o '[0-9]+\.[0-9]+' /etc/redhat-release | cut -d"." -f1) \
-	&& printf "%s\n" "[nginx]" "name=nginx repo" \
-	"baseurl=https://nginx.org/packages/mainline/centos/${version}/\$basearch/" \
-	"gpgcheck=1" "enabled=1" "module_hotfixes=true" > /etc/yum.repos.d/nginx.repo \
-	&& dnf --nodocs install -y nginx-${NGINX_VERSION} \
-	&& rm /etc/yum.repos.d/nginx.repo
+# temp fix for CVE-2022-27404, CVE-2022-33099 and CVE-2022-37434
+RUN microdnf --nodocs upgrade -y freetype lua-libs zlib
 
 
 ############################################# Base image for UBI with NGINX Plus #############################################
-FROM ubi-base AS ubi-plus
+FROM redhat/ubi8:8.6-990 AS ubi-plus
 ARG NGINX_PLUS_VERSION
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
-	rpm --import https://cs.nginx.com/static/keys/nginx_signing.key \
+	dnf --nodocs install -y shadow-utils ca-certificates \
+	# temp fix for CVE-2022-1304 and CVE-2016-3709
+	&& dnf --nodocs install -y libcom_err libxml2 \
+	&& groupadd --system --gid 101 nginx \
+	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 101 nginx \
+	&& rpm --import https://cs.nginx.com/static/keys/nginx_signing.key \
 	&& curl -fsSL "https://cs.nginx.com/static/files/nginx-plus-$(grep -E -o '[0-9]+\.[0-9]+' /etc/redhat-release | cut -d"." -f1).repo" | tr 0 1 > /etc/yum.repos.d/nginx-plus.repo \
 	&& sed -i "0,/centos/s;;${NGINX_PLUS_VERSION}/centos;" /etc/yum.repos.d/nginx-plus.repo \
 	&& dnf --nodocs install -y nginx-plus nginx-plus-module-njs
@@ -279,11 +262,11 @@ COPY --link --chown=101:0 dist/kubernetes-ingress_linux_${TARGETARCH}*/nginx-ing
 ############################################# Create image with nginx-ingress built by GoReleaser for AWS Marketplace #############################################
 FROM common AS aws
 ARG TARGETARCH
-ARG NAP_MODULES=
+ARG NAP_MODULES_AWS
 
 LABEL org.nginx.kic.image.build.version="aws"
 
-COPY --link --chown=101:0 dist/aws*${NAP_MODULES}_linux_${TARGETARCH}*/nginx-ingress /
+COPY --link --chown=101:0 dist/aws*${NAP_MODULES_AWS}_linux_${TARGETARCH}*/nginx-ingress /
 
 
 ############################################# Create image with nginx-ingress extracted from image on Docker Hub #############################################
