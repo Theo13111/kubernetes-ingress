@@ -1,4 +1,4 @@
-certifi==2022.9.24
+certifi==2022.12.7
 cffi==1.15.1
 flaky==3.7.0
 forcediphttpsadapter==1.0.2
