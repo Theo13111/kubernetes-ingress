@@ -1,17 +1,16 @@
 # syntax=docker/dockerfile:1.4
 ARG BUILD_OS=debian
-ARG NGINX_PLUS_VERSION=R27
+ARG NGINX_PLUS_VERSION=R28
 ARG DOWNLOAD_TAG=edge
-ARG DEBIAN_VERSION=bullseye-slim
 
 
 ############################################# Base images containing libs for Opentracing #############################################
-FROM opentracing/nginx-opentracing:nginx-1.23.2 as opentracing-lib
-FROM opentracing/nginx-opentracing:nginx-1.23.2-alpine as alpine-opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.23.3 as opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.23.3-alpine as alpine-opentracing-lib
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.23.2 AS debian
+FROM nginx:1.23.3 AS debian
 
 RUN --mount=type=bind,from=opentracing-lib,target=/tmp/ot/ \
 	apt-get update \
@@ -23,7 +22,7 @@ RUN --mount=type=bind,from=opentracing-lib,target=/tmp/ot/ \
 
 
 ############################################# Base image for Alpine #############################################
-FROM nginx:1.23.2-alpine AS alpine
+FROM nginx:1.23.3-alpine AS alpine
 
 RUN --mount=type=bind,from=alpine-opentracing-lib,target=/tmp/ot/ \
 	apk add --no-cache libcap libstdc++ \
@@ -33,7 +32,7 @@ RUN --mount=type=bind,from=alpine-opentracing-lib,target=/tmp/ot/ \
 
 
 ############################################# Base image for Alpine with NGINX Plus #############################################
-FROM alpine:3.16 as alpine-plus
+FROM alpine:3.17 as alpine-plus
 ARG NGINX_PLUS_VERSION
 
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/apk/cert.pem,mode=0644 \
@@ -47,7 +46,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/apk/cert.pem,mode=0644 \
 
 
 ############################################# Base image for Debian with NGINX Plus #############################################
-FROM debian:${DEBIAN_VERSION} AS debian-plus
+FROM debian:11-slim AS debian-plus
 ARG IC_VERSION
 ARG NGINX_PLUS_VERSION
 ARG BUILD_OS
@@ -104,7 +103,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for UBI #############################################
-FROM nginxcontrib/nginx:1.23.2-ubi AS ubi
+FROM nginxcontrib/nginx:1.23.3-ubi AS ubi
 ARG IC_VERSION
 
 LABEL name="NGINX Ingress Controller" \
@@ -119,20 +118,17 @@ LABEL name="NGINX Ingress Controller" \
 
 COPY --link --chown=101:0 LICENSE /licenses/
 
-# temp fix for CVE-2022-27404, CVE-2022-33099 and CVE-2022-37434
-RUN microdnf --nodocs upgrade -y freetype lua-libs zlib
-
 
 ############################################# Base image for UBI with NGINX Plus #############################################
-FROM redhat/ubi8:8.6-990 AS ubi-plus
+FROM redhat/ubi8:8.6 AS ubi-plus
 ARG NGINX_PLUS_VERSION
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
 	dnf --nodocs install -y shadow-utils ca-certificates \
-	# temp fix for CVE-2022-1304 and CVE-2016-3709
-	&& dnf --nodocs install -y libcom_err libxml2 \
+	# temp fix for CVE-2022-1304 CVE-2016-3709 and CVE-2022-42898
+	&& dnf --nodocs install -y libcom_err libxml2 krb5-libs \
 	&& groupadd --system --gid 101 nginx \
 	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 101 nginx \
 	&& rpm --import https://cs.nginx.com/static/keys/nginx_signing.key \

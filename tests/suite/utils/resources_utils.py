@@ -424,7 +424,7 @@ def create_service_with_name(v1: CoreV1Api, namespace, name) -> str:
         return create_service(v1, namespace, dep)
 
 
-def get_service_node_ports(v1: CoreV1Api, name, namespace) -> (int, int, int, int, int, int):
+def get_service_node_ports(v1: CoreV1Api, name, namespace) -> (int, int, int, int, int, int, int):
     """
     Get service allocated node_ports.
 
@@ -434,10 +434,11 @@ def get_service_node_ports(v1: CoreV1Api, name, namespace) -> (int, int, int, in
     :return: (plain_port, ssl_port, api_port, exporter_port)
     """
     resp = v1.read_namespaced_service(name, namespace)
-    if len(resp.spec.ports) == 6:
+    if len(resp.spec.ports) == 7:
         print("An unexpected amount of ports in a service. Check the configuration")
     print(f"Service with an API port: {resp.spec.ports[2].node_port}")
     print(f"Service with an Exporter port: {resp.spec.ports[3].node_port}")
+    print(f"Service with an Service Insight port: {resp.spec.ports[6].node_port}")
     return (
         resp.spec.ports[0].node_port,
         resp.spec.ports[1].node_port,
@@ -445,6 +446,7 @@ def get_service_node_ports(v1: CoreV1Api, name, namespace) -> (int, int, int, in
         resp.spec.ports[3].node_port,
         resp.spec.ports[4].node_port,
         resp.spec.ports[5].node_port,
+        resp.spec.ports[6].node_port,
     )
 
 
@@ -705,6 +707,24 @@ def create_namespace_with_name_from_yaml(v1: CoreV1Api, name, yaml_manifest) -> 
         v1.create_namespace(dep)
         print(f"Namespace created with name '{str(dep['metadata']['name'])}'")
         return dep["metadata"]["name"]
+
+
+def patch_namespace_with_label(v1: CoreV1Api, name, label, yaml_manifest) -> str:
+    """
+    Update a namespace with a specific label based on a yaml manifest.
+
+    :param v1: CoreV1Api
+    :param name: name
+    :param label: the name of the label
+    :param yaml_manifest: an absolute path to file
+    :return: str
+    """
+    print(f"Update namespace {name} with label app={label}")
+    with open(yaml_manifest) as f:
+        dep = yaml.safe_load(f)
+        dep["metadata"]["labels"]["app"] = label
+        v1.patch_namespace(name, dep)
+        print(f"Namespace {name} updated with label: {label}")
 
 
 def create_service_account(v1: CoreV1Api, namespace, body) -> None:
