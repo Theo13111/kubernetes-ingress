@@ -19,10 +19,10 @@ require (
 	golang.org/x/exp v0.0.0-20230105000112-eab7a2c85304
 	google.golang.org/grpc v1.51.0
 	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.25.4
+	k8s.io/apimachinery v0.26.0
 	k8s.io/client-go v0.25.4
 	k8s.io/code-generator v0.26.0
-	k8s.io/utils v0.0.0-20220922133306-665eaaec4324
+	k8s.io/utils v0.0.0-20221107191617-1a15be271d1d
 	sigs.k8s.io/controller-tools v0.10.0
 )
 
