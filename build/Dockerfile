@@ -141,7 +141,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& microdnf clean all
 
 ############################################# Base image for UBI with NGINX Plus and App Protect WAF/DoS #############################################
-FROM redhat/ubi8:8.6 as ubi-plus-nap
+FROM redhat/ubi8:8.7 as ubi-plus-nap
 ARG NGINX_PLUS_VERSION
 ARG NAP_MODULES
 
