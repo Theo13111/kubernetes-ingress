@@ -29,6 +29,8 @@ repos:
       - id: no-commit-to-branch
       - id: requirements-txt-fixer
       - id: fix-byte-order-marker
+      - id: detect-private-key
+        exclude: ^(examples/|tests/|internal/k8s/secrets/)
   - repo: local
     hooks:
       - id: golang-diff
@@ -38,7 +40,7 @@ repos:
         types: [go]
         pass_filenames: false
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.51.1
+    rev: v1.51.2
     hooks:
       - id: golangci-lint
         args: [--new-from-patch=/tmp/diff.patch]
