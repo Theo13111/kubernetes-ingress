@@ -1,13 +1,13 @@
 ---
-title: Installation with NGINX App Protect Dos
-description: "This document provides an overview of the steps required to use NGINX App Protect Dos with your NGINX Ingress Controller deployment."
+title: Installation with NGINX App Protect DoS
+description: "This document provides an overview of the steps required to use NGINX App Protect DoS with your NGINX Ingress Controller deployment."
 weight: 1800
 doctypes: [""]
 toc: true
 docs: "DOCS-583"
 ---
 
-> **Note**: The NGINX Kubernetes Ingress Controller integration with NGINX App Protect DoS requires the use of NGINX Plus.
+> **Note**: The F5 NGINX Kubernetes Ingress Controller integration with F5 NGINX App Protect DoS requires the use of F5 NGINX Plus.
 
 This document provides an overview of the steps required to use NGINX App Protect DoS with your NGINX Ingress Controller deployment. You can visit the linked documents to find additional information and instructions.
 
@@ -20,16 +20,29 @@ This document provides an overview of the steps required to use NGINX App Protec
 2. Clone the Ingress Controller repo:
     ```
     $ git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v3.0.2
-    $ cd kubernetes-ingress
+    $ cd kubernetes-ingress/deployments
     ```
 
-## Create the namespace and service account
+## Install the App Protect DoS Arbitrator
+
+### Helm Chart
+
+The App Protect DoS Arbitrator can be installed using the [NGINX App Protect DoS Helm Chart](https://github.com/nginxinc/nap-dos-arbitrator-helm-chart).
+If you have the NGINX Helm Repository already added, you can install the App Protect DoS Arbitrator by running the following command:
+
+```bash
+helm install my-release-dos nginx-stable/nginx-appprotect-dos-arbitrator
+```
+
+### YAML Manifests
+
+Alternatively, you can install the App Protect DoS Arbitrator using the YAML manifests provided in the Ingress Controller repo.
+
+- Create the namespace and service account
 
 ```bash
   kubectl apply -f common/ns-and-sa.yaml
 ```
-
-## Install the App Protect DoS Arbitrator
 
 - Deploy the app protect dos arbitrator
     ```bash

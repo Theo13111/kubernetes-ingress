@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.5
 ARG BUILD_OS=debian
 ARG NGINX_PLUS_VERSION=R28
 ARG DOWNLOAD_TAG=edge
@@ -118,6 +118,9 @@ LABEL name="NGINX Ingress Controller" \
 
 COPY --link --chown=101:0 LICENSE /licenses/
 
+# temp fix for CVE-2023-0361 and CVE-2021-46822
+RUN microdnf --nodocs upgrade -y gnutls libjpeg-turbo
+
 
 ############################################# Base image for UBI with NGINX Plus #############################################
 FROM redhat/ubi9-minimal AS ubi-plus
@@ -133,11 +136,13 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& curl -fsSL "https://cs.nginx.com/static/files/plus-$(grep -E -o '[0-9]+\.[0-9]+' /etc/redhat-release | cut -d"." -f1).repo" | tr 0 1 > /etc/yum.repos.d/nginx-plus.repo \
 	&& sed -i "0,/centos/s;;${NGINX_PLUS_VERSION}/centos;" /etc/yum.repos.d/nginx-plus.repo \
 	&& microdnf --nodocs install -y nginx-plus nginx-plus-module-njs \
+	# temp fix for CVE-2023-0361
+	&& microdnf --nodocs upgrade -y gnutls \
 	&& microdnf remove -y shadow-utils \
 	&& microdnf clean all
 
 ############################################# Base image for UBI with NGINX Plus and App Protect WAF/DoS #############################################
-FROM redhat/ubi8:8.6 as ubi-plus-nap
+FROM redhat/ubi8 as ubi-plus-nap
 ARG NGINX_PLUS_VERSION
 ARG NAP_MODULES
 
@@ -145,7 +150,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	--mount=type=secret,id=nginx-repo.key,dst=/etc/ssl/nginx/nginx-repo.key,mode=0644 \
 	--mount=type=secret,id=rhel_license,dst=/tmp/rhel_license,mode=0644 \
 	source /tmp/rhel_license \
-	## the code below is duplicated from the ubi-plus image because NAP doesn't support UBI versions newer than 8.6
+	## the code below is duplicated from the ubi-plus image because NAP doesn't support UBI 9 and minimal versions
 	dnf --nodocs install -y shadow-utils ca-certificates \
 	&& groupadd --system --gid 101 nginx \
 	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 101 nginx \
@@ -154,6 +159,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	&& sed -i "0,/centos/s;;${NGINX_PLUS_VERSION}/centos;" /etc/yum.repos.d/nginx-plus.repo \
 	&& dnf --nodocs install -y nginx-plus nginx-plus-module-njs \
 	## end of duplicated code
+	&& sed -i 's/\(def in_container():\)/\1\n    return False/g' /usr/lib64/python*/*-packages/rhsm/config.py \
 	&& subscription-manager register --org=${RHEL_ORGANIZATION} --activationkey=${RHEL_ACTIVATION_KEY} || true \
 	&& subscription-manager attach \
 	&& dnf config-manager --set-enabled codeready-builder-for-rhel-8-x86_64-rpms \
@@ -168,8 +174,8 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 	sed -i "0,/centos/s;;${NGINX_PLUS_VERSION}/centos;" /etc/yum.repos.d/app-protect-dos-8.repo; \
 	dnf --nodocs install -y app-protect-dos; \
 	fi \
-	# fix for CVEs
-	&& dnf --nodocs upgrade -y libcom_err libxml2 krb5-libs dbus expat systemd libtasn1 sqlite-libs libksba platform-python platform-python-setuptools python3-setuptools-wheel tar \
+	# temp fix for CVE-2023-23916
+	&& dnf --nodocs upgrade -y curl \
 	&& rm /etc/yum.repos.d/app-protect*.repo \
 	&& subscription-manager unregister \
 	&& dnf clean all && rm -rf /var/cache/dnf
