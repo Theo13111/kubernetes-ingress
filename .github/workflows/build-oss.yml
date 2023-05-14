@@ -12,9 +12,6 @@ on:
       tag:
         required: false
         type: string
-      sha_long:
-        required: false
-        type: string
 
 defaults:
   run:
@@ -33,7 +30,7 @@ jobs:
       image_digest: ${{ steps.build-push.outputs.digest }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           ref: ${{ inputs.tag != '' && format('refs/tags/v{0}', inputs.tag) || github.ref }}
           fetch-depth: 0
@@ -99,8 +96,9 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@507c2f2dc502c992ad446e3d7a5dfbe311567a96 # v4.3.0
+        uses: docker/metadata-action@c4ee3adeed93b1fa6a762f209fb01608c1a22f1e # v4.4.0
         with:
+          context: ${{ inputs.tag != '' && 'git' || 'workflow' }}
           images: |
             name=nginx/nginx-ingress
             name=ghcr.io/nginxinc/kubernetes-ingress
@@ -121,7 +119,6 @@ jobs:
             org.opencontainers.image.description=NGINX Ingress Controller for Kubernetes
             org.opencontainers.image.documentation=https://docs.nginx.com/nginx-ingress-controller
             org.opencontainers.image.vendor=NGINX Inc <kubernetes@nginx.com>
-            org.opencontainers.image.revision=${{ inputs.sha_long != '' && inputs.sha_long || github.sha }}
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/main/README.md
             io.artifacthub.package.logo-url=https://docs.nginx.com/nginx-ingress-controller/images/icons/NGINX-Ingress-Controller-product-icon.svg
             io.artifacthub.package.maintainers=[{"name":"NGINX Inc","email":"kubernetes@nginx.com"}]
@@ -151,7 +148,7 @@ jobs:
             IC_VERSION=${{ github.event_name == 'pull_request' && 'CI' || steps.meta.outputs.version }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@1f0aa582c8c8f5f7639610d6d38baddfea4fdcee # 0.9.2
+        uses: aquasecurity/trivy-action@e5f43133f6e8736992c9f3c1b3296e24b37e17f2 # 0.10.0
         continue-on-error: true
         with:
           image-ref: nginx/nginx-ingress:${{ steps.meta.outputs.version }}
@@ -160,7 +157,7 @@ jobs:
           ignore-unfixed: "true"
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@d186a2a36cc67bfa1b860e6170d37fb9634742c7 # v2.2.11
+        uses: github/codeql-action/upload-sarif@f3feb00acb00f31a6f60280e6ace9ca31d91c76a # v2.3.2
         continue-on-error: true
         with:
           sarif_file: "trivy-results-${{ inputs.image }}.sarif"
@@ -178,7 +175,6 @@ jobs:
     needs: build
     uses: ./.github/workflows/updates-notification.yml
     with:
-      sha_long: ${{ inputs.sha_long }}
       tag: ${{ inputs.tag }}
       version: ${{ needs.build.outputs.version }}
       image_digest: ${{ needs.build.outputs.image_digest }}
