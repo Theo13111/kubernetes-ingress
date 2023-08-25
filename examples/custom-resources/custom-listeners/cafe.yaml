@@ -1,65 +1,65 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc1
+  name: coffee
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: greeter
+      app: coffee
   template:
     metadata:
       labels:
-        app: greeter
+        app: coffee
     spec:
       containers:
-      - name: greeter
-        image: ghcr.io/nginxinc/kic-test-grpc-server:0.2.1
+      - name: coffee
+        image: nginxdemos/nginx-hello:plain-text
         ports:
-        - containerPort: 50051
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc1-svc
+  name: coffee-svc
 spec:
   ports:
-  - port: 50051
-    targetPort: 50051
+  - port: 80
+    targetPort: 8080
     protocol: TCP
-    name: grpc1
+    name: http
   selector:
-    app: greeter
+    app: coffee
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc2
+  name: tea
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: greeter
+      app: tea
   template:
     metadata:
       labels:
-        app: greeter
+        app: tea
     spec:
       containers:
-      - name: greeter
-        image: ghcr.io/nginxinc/kic-test-grpc-server:0.2.1
+      - name: tea
+        image: nginxdemos/nginx-hello:plain-text
         ports:
-        - containerPort: 50051
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc2-svc
+  name: tea-svc
 spec:
   ports:
-  - port: 50051
-    targetPort: 50051
+  - port: 80
+    targetPort: 8080
     protocol: TCP
-    name: grpc2
+    name: http
   selector:
-    app: greeter
+    app: tea
