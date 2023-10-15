@@ -441,6 +441,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.minReadySeconds` | Specifies the minimum number of seconds for which a newly created Pod should be ready without any of its containers crashing, for it to be considered available. [docs](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#min-ready-seconds) | 0 |
 |`controller.autoscaling.enabled` | Enables HorizontalPodAutoscaling. | false |
 |`controller.autoscaling.annotations` | The annotations of the Ingress Controller HorizontalPodAutoscaler. | {} |
+|`controller.autoscaling.behavior` | Behavior configuration for the HPA. | {} |
 |`controller.autoscaling.minReplicas` | Minimum number of replicas for the HPA. | 1 |
 |`controller.autoscaling.maxReplicas` | Maximum number of replicas for the HPA. | 3 |
 |`controller.autoscaling.targetCPUUtilizationPercentage` | The target CPU utilization percentage. | 50 |
@@ -451,6 +452,8 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.podDisruptionBudget.maxUnavailable` | The number of Ingress Controller pods that can be unavailable. This is a mutually exclusive setting with "minAvailable". | 0 |
 |`controller.strategy` | Specifies the strategy used to replace old Pods with new ones. Docs for [Deployment update strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy) and [Daemonset update strategy](https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/#daemonset-update-strategy) | {} |
 |`controller.disableIPV6` | Disable IPV6 listeners explicitly for nodes that do not support the IPV6 stack. | false |
+|`controller.defaultHTTPListenerPort`  | Sets the port for the HTTP `default_server` listener. | 80 |
+|`controller.defaultHTTPSListenerPort`  | Sets the port for the HTTPS `default_server` listener. | 443 |
 |`controller.readOnlyRootFilesystem` | Configure root filesystem as read-only and add volumes for temporary data. | false |
 |`rbac.create` | Configures RBAC. | true |
 |`prometheus.create` | Expose NGINX or NGINX Plus metrics in the Prometheus format. | true |
