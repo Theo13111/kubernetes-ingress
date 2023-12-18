@@ -29,11 +29,10 @@ Choose one of the following methods to get the NGINX Ingress Controller image:
 
 ### Clone the repository
 
-Clone the NGINX Ingress Controller repository and go to the _deployments_ folder. Replace `<version_number>` with the specific release you want to use.
+Clone the NGINX Ingress Controller repository using the command shown below, and replace `<version_number>` with the specific release you want to use.
 
 ```shell
 git clone https://github.com/nginxinc/kubernetes-ingress.git --branch <version_number>
-cd kubernetes-ingress/deployments
 ```
 
 For example, if you want to use version 3.3.2, the command would be `git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v3.3.2`.
@@ -56,42 +55,8 @@ This guide assumes you are using the latest release.
 
 ## Create custom resources {#create-custom-resources}
 
-To make sure your NGINX Ingress Controller pods reach the `Ready` state, you'll need to create custom resource definitions (CRDs) for various components. Alternatively, you can disable this requirement by setting the `-enable-custom-resources` command-line argument to `false`.
+{{< include "installation/create-custom-resources.md" >}}
 
-### Core custom resource definitions
-
-1. Create CRDs for [VirtualServer and VirtualServerRoute]({{< relref "configuration/virtualserver-and-virtualserverroute-resources.md" >}}), [TransportServer]({{< relref "configuration/transportserver-resource.md" >}}), and [Policy]({{< relref "configuration/policy-resource.md" >}}):
-
-    ```shell
-    kubectl apply -f common/crds/k8s.nginx.org_virtualservers.yaml
-    kubectl apply -f common/crds/k8s.nginx.org_virtualserverroutes.yaml
-    kubectl apply -f common/crds/k8s.nginx.org_transportservers.yaml
-    kubectl apply -f common/crds/k8s.nginx.org_policies.yaml
-    ```
-
-### Optional custom resource definitions
-
-1. (Optional) For TCP and UDP load balancing, create a cCRD for [GlobalConfiguration]({{< relref "configuration/global-configuration/globalconfiguration-resource.md" >}}):
-
-    ```shell
-    kubectl apply -f common/crds/k8s.nginx.org_globalconfigurations.yaml
-    ```
-
-2. (Optional) For the NGINX App Protect WAF module, create CRDs for `APPolicy`, `APLogConf` and `APUserSig`:
-
-    ```shell
-    kubectl apply -f common/crds/appprotect.f5.com_aplogconfs.yaml
-    kubectl apply -f common/crds/appprotect.f5.com_appolicies.yaml
-    kubectl apply -f common/crds/appprotect.f5.com_apusersigs.yaml
-    ```
-
-3. (Optional) For the NGINX App Protect DoS module, create CRDs for `APDosPolicy`, `APDosLogConf` and `DosProtectedResource`:
-
-   ```shell
-   kubectl apply -f common/crds/appprotectdos.f5.com_apdoslogconfs.yaml
-   kubectl apply -f common/crds/appprotectdos.f5.com_apdospolicy.yaml
-   kubectl apply -f common/crds/appprotectdos.f5.com_dosprotectedresources.yaml
-   ```
 
 ---
 
@@ -133,7 +98,7 @@ For more information about the  _NodePort_ service, refer to the [Kubernetes doc
 1. To create a service of type *NodePort*, run:
 
     ```shell
-    kubectl create -f service/nodeport.yaml
+    kubectl create -f deployments/service/nodeport.yaml
     ```
 
     Kubernetes automatically allocates two ports on every node in the cluster. You can access NGINX Ingress Controller by combining any node's IP address with these ports.
@@ -147,13 +112,13 @@ For more information about the _LoadBalancer_ service, refer to the [Kubernetes 
     - GCP or Azure:
 
         ```shell
-        kubectl apply -f service/loadbalancer.yaml
+        kubectl apply -f deployments/service/loadbalancer.yaml
         ```
 
     - AWS:
 
         ```shell
-        kubectl apply -f service/loadbalancer-aws-elb.yaml
+        kubectl apply -f deployments/service/loadbalancer-aws-elb.yaml
         ```
 
         If you're using AWS, Kubernetes will set up a Classic Load Balancer (ELB) in TCP mode. This load balancer will have the PROXY protocol enabled to pass along the client's IP address and port.
@@ -171,7 +136,7 @@ For more information about the _LoadBalancer_ service, refer to the [Kubernetes 
      - Update the ConfigMap:
 
          ```shell
-         kubectl apply -f common/nginx-config.yaml
+         kubectl apply -f deployments/common/nginx-config.yaml
          ```
 
     {{<note>}}AWS users have more customization options for their load balancers. These include choosing the load balancer type and configuring SSL termination. Refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer) to learn more. {{</note>}}
@@ -221,8 +186,45 @@ Connect to ports 80 and 443 using the IP address of any node in the cluster wher
     kubectl delete clusterrolebinding nginx-ingress
     ```
 
-3. **Delete the Custom Resource Definitions**: Be aware that this step will also erase all associated custom resources. To proceed, run:
+3. **Delete the Custom Resource Definitions**:
 
+   {{<tabs name="delete-crds">}}
+
+   {{%tab name="Deleting CRDs from single YAML"%}}
+
+   1. Delete core custom resource definitions:
     ```shell
-    kubectl delete -f common/crds/
+    kubectl delete -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v3.3.2/deploy/crds.yaml
     ```
+   2. Delete custom resource definitions for the NGINX App Protect WAF module:
+
+   ```shell
+    kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v3.3.2/deploy/crds-nap-waf.yaml
+    ```
+
+   3. Delete custom resource definitions for the NGINX App Protect DoS module:
+   ```shell
+    kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v3.3.2/deploy/crds-nap-dos.yaml
+    ```
+   {{%/tab%}}
+
+   {{%tab name="Deleting CRDs after cloning the repo"%}}
+
+   1. Delete core custom resource definitions:
+    ```shell
+    kubectl delete -f config/crd/bases/crds.yaml
+    ```
+   2. Delete custom resource definitions for the NGINX App Protect WAF module:
+
+   ```shell
+    kubectl apply -f config/crd/bases/crds-nap-waf.yaml
+    ```
+
+   3. Delete custom resource definitions for the NGINX App Protect DoS module:
+   ```shell
+    kubectl apply -f config/crd/bases/crds-nap-dos.yaml
+    ```
+
+   {{%/tab%}}
+
+   {{</tabs>}}

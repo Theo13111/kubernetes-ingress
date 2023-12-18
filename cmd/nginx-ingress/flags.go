@@ -15,6 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+const (
+	dynamicSSLReloadParam = "ssl-dynamic-reload"
+)
+
 var (
 	healthStatus = flag.Bool("health-status", false,
 		`Add a location based on the value of health-status-uri to the default server. The location responds with the 200 status code for any request.
@@ -194,6 +198,8 @@ var (
 	defaultHTTPListenerPort = flag.Int("default-http-listener-port", 80, "Sets a custom port for the HTTP NGINX `default_server`. [1024 - 65535]")
 
 	defaultHTTPSListenerPort = flag.Int("default-https-listener-port", 443, "Sets a custom port for the HTTPS `default_server`. [1024 - 65535]")
+
+	enableDynamicSSLReload = flag.Bool(dynamicSSLReloadParam, true, "Enable reloading of SSL Certificates without restarting the NGINX process.")
 
 	startupCheckFn func() error
 )
