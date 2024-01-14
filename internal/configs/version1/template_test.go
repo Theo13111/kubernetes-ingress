@@ -2,9 +2,12 @@ package version1
 
 import (
 	"bytes"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
+
+	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
 )
 
 func TestExecuteMainTemplateForNGINXPlus(t *testing.T) {
@@ -14,6 +17,19 @@ func TestExecuteMainTemplateForNGINXPlus(t *testing.T) {
 	buf := &bytes.Buffer{}
 
 	err := tmpl.Execute(buf, mainCfg)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(buf.String())
+}
+
+func TestExecuteMainTemplateForNGINXPlusR31(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgR31)
 	if err != nil {
 		t.Error(err)
 	}
@@ -957,6 +973,136 @@ func TestExecuteTemplate_ForIngressForNGINXWithHTTP2Off(t *testing.T) {
 	}
 }
 
+func TestExecuteTemplate_ForIngressForNGINXWithRequestRateLimit(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXIngressTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, ingressCfgRequestRateLimit)
+	t.Log(buf.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ingConf := buf.String()
+
+	limitReq := ingressCfgRequestRateLimit.Servers[0].Locations[0].LimitReq
+
+	wantDirectives := []string{
+		"limit_req_zone ${binary_remote_addr} zone=default/myingress:10m rate=200r/s;",
+		"limit_req zone=default/myingress burst=" + strconv.Itoa(limitReq.Burst) + " delay=" + strconv.Itoa(limitReq.Delay) + ";",
+		"limit_req_status " + strconv.Itoa(limitReq.RejectCode) + ";",
+		"limit_req_dry_run on;",
+		"limit_req_log_level info;",
+	}
+
+	for _, want := range wantDirectives {
+		if !strings.Contains(ingConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+}
+
+func TestExecuteTemplate_ForIngressForNGINXWithRequestRateLimitMinions(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXIngressTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, ingressCfgRequestRateLimitMinions)
+	t.Log(buf.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ingConf := buf.String()
+
+	limitReqTea := ingressCfgRequestRateLimitMinions.Servers[0].Locations[0].LimitReq
+	limitReqCoffee := ingressCfgRequestRateLimitMinions.Servers[0].Locations[1].LimitReq
+
+	wantDirectives := []string{
+		"limit_req_zone ${binary_remote_addr} zone=default/tea-minion:10m rate=200r/s;",
+		"limit_req_zone ${binary_remote_addr} zone=default/coffee-minion:20m rate=400r/s;",
+		"limit_req zone=" + limitReqTea.Zone + " burst=" + strconv.Itoa(limitReqTea.Burst) + " delay=" + strconv.Itoa(limitReqTea.Delay) + ";",
+		"limit_req zone=" + limitReqCoffee.Zone + " burst=" + strconv.Itoa(limitReqCoffee.Burst) + " nodelay;",
+		"limit_req_status " + strconv.Itoa(limitReqTea.RejectCode) + ";",
+		"limit_req_status " + strconv.Itoa(limitReqCoffee.RejectCode) + ";",
+		"limit_req_log_level " + limitReqTea.LogLevel + ";",
+		"limit_req_log_level " + limitReqCoffee.LogLevel + ";",
+		"limit_req_dry_run on;",
+	}
+
+	for _, want := range wantDirectives {
+		if !strings.Contains(ingConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+}
+
+func TestExecuteTemplate_ForIngressForNGINXPlusWithRequestRateLimit(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusIngressTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, ingressCfgRequestRateLimit)
+	t.Log(buf.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ingConf := buf.String()
+
+	limitReq := ingressCfgRequestRateLimit.Servers[0].Locations[0].LimitReq
+
+	wantDirectives := []string{
+		"limit_req_zone ${binary_remote_addr} zone=default/myingress:10m rate=200r/s;",
+		"limit_req zone=default/myingress burst=" + strconv.Itoa(limitReq.Burst) + " delay=" + strconv.Itoa(limitReq.Delay) + ";",
+		"limit_req_status " + strconv.Itoa(limitReq.RejectCode) + ";",
+		"limit_req_dry_run on;",
+		"limit_req_log_level info;",
+	}
+
+	for _, want := range wantDirectives {
+		if !strings.Contains(ingConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+}
+
+func TestExecuteTemplate_ForIngressForNGINXPlusWithRequestRateLimitMinions(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusIngressTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, ingressCfgRequestRateLimitMinions)
+	t.Log(buf.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ingConf := buf.String()
+
+	limitReqTea := ingressCfgRequestRateLimitMinions.Servers[0].Locations[0].LimitReq
+	limitReqCoffee := ingressCfgRequestRateLimitMinions.Servers[0].Locations[1].LimitReq
+
+	wantDirectives := []string{
+		"limit_req_zone ${binary_remote_addr} zone=default/tea-minion:10m rate=200r/s;",
+		"limit_req_zone ${binary_remote_addr} zone=default/coffee-minion:20m rate=400r/s;",
+		"limit_req zone=" + limitReqTea.Zone + " burst=" + strconv.Itoa(limitReqTea.Burst) + " delay=" + strconv.Itoa(limitReqTea.Delay) + ";",
+		"limit_req zone=" + limitReqCoffee.Zone + " burst=" + strconv.Itoa(limitReqCoffee.Burst) + " nodelay;",
+		"limit_req_status " + strconv.Itoa(limitReqTea.RejectCode) + ";",
+		"limit_req_status " + strconv.Itoa(limitReqCoffee.RejectCode) + ";",
+		"limit_req_log_level " + limitReqTea.LogLevel + ";",
+		"limit_req_log_level " + limitReqCoffee.LogLevel + ";",
+		"limit_req_dry_run on;",
+	}
+
+	for _, want := range wantDirectives {
+		if !strings.Contains(ingConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+}
+
 func newNGINXPlusIngressTmpl(t *testing.T) *template.Template {
 	t.Helper()
 	tmpl, err := template.New("nginx-plus.ingress.tmpl").Funcs(helperFunctions).ParseFiles("nginx-plus.ingress.tmpl")
@@ -1291,6 +1437,33 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+	}
+
+	mainCfgR31 = MainConfig{
+		DefaultHTTPListenerPort:  80,
+		DefaultHTTPSListenerPort: 443,
+		ServerNamesHashMaxSize:   "512",
+		ServerTokens:             "off",
+		WorkerProcesses:          "auto",
+		WorkerCPUAffinity:        "auto",
+		WorkerShutdownTimeout:    "1m",
+		WorkerConnections:        "1024",
+		WorkerRlimitNofile:       "65536",
+		LogFormat:                []string{"$remote_addr", "$remote_user"},
+		LogFormatEscaping:        "default",
+		StreamSnippets:           []string{"# comment"},
+		StreamLogFormat:          []string{"$remote_addr", "$remote_user"},
+		StreamLogFormatEscaping:  "none",
+		ResolverAddresses:        []string{"example.com", "127.0.0.1"},
+		ResolverIPV6:             false,
+		ResolverValid:            "10s",
+		ResolverTimeout:          "15s",
+		KeepaliveTimeout:         "65s",
+		KeepaliveRequests:        100,
+		VariablesHashBucketSize:  256,
+		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgHTTP2On = MainConfig{
@@ -1317,6 +1490,7 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgCustomTLSPassthroughPort = MainConfig{
@@ -1342,6 +1516,7 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          true,
 		TLSPassthroughPort:      8443,
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgWithoutTLSPassthrough = MainConfig{
@@ -1367,6 +1542,7 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          false,
 		TLSPassthroughPort:      8443,
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgDefaultTLSPassthroughPort = MainConfig{
@@ -1392,6 +1568,7 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          true,
 		TLSPassthroughPort:      443,
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgCustomDefaultHTTPAndHTTPSListenerPorts = MainConfig{
@@ -1417,6 +1594,7 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgCustomDefaultHTTPListenerPort = MainConfig{
@@ -1442,6 +1620,7 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	mainCfgCustomDefaultHTTPSListenerPort = MainConfig{
@@ -1467,6 +1646,7 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
 	}
 
 	// Vars for Mergable Ingress Master - Minion tests
@@ -2068,6 +2248,188 @@ var (
 		Ingress: Ingress{
 			Name:      "cafe-ingress",
 			Namespace: "default",
+		},
+	}
+
+	// Ingress Config that includes a request rate limit
+	ingressCfgRequestRateLimit = IngressNginxConfig{
+		Ingress: Ingress{
+			Name:      "myingress",
+			Namespace: "default",
+		},
+		Servers: []Server{
+			{
+				Name:         "test.example.com",
+				ServerTokens: "off",
+				StatusZone:   "test.example.com",
+				JWTAuth: &JWTAuth{
+					Key:                  "/etc/nginx/secrets/key.jwk",
+					Realm:                "closed site",
+					Token:                "$cookie_auth_token",
+					RedirectLocationName: "@login_url-default-cafe-ingress",
+				},
+				SSL:               true,
+				SSLCertificate:    "secret.pem",
+				SSLCertificateKey: "secret.pem",
+				SSLPorts:          []int{443},
+				SSLRedirect:       true,
+				Locations: []Location{
+					{
+						Path:                "/tea",
+						Upstream:            testUpstream,
+						ProxyConnectTimeout: "10s",
+						ProxyReadTimeout:    "10s",
+						ProxySendTimeout:    "10s",
+						ClientMaxBodySize:   "2m",
+						JWTAuth: &JWTAuth{
+							Key:   "/etc/nginx/secrets/location-key.jwk",
+							Realm: "closed site",
+							Token: "$cookie_auth_token",
+						},
+						LimitReq: &LimitReq{
+							Zone:       "default/myingress",
+							Burst:      100,
+							Delay:      50,
+							RejectCode: 429,
+							DryRun:     true,
+							LogLevel:   "info",
+						},
+					},
+					{
+						Path:                "/coffee",
+						Upstream:            testUpstream,
+						ProxyConnectTimeout: "10s",
+						ProxyReadTimeout:    "10s",
+						ProxySendTimeout:    "10s",
+						ClientMaxBodySize:   "2m",
+						JWTAuth: &JWTAuth{
+							Key:   "/etc/nginx/secrets/location-key.jwk",
+							Realm: "closed site",
+							Token: "$cookie_auth_token",
+						},
+						LimitReq: &LimitReq{
+							Zone:       "default/myingress",
+							Burst:      100,
+							Delay:      50,
+							RejectCode: 429,
+							DryRun:     true,
+							LogLevel:   "info",
+						},
+					},
+				},
+				HealthChecks: map[string]HealthCheck{"test": healthCheck},
+				JWTRedirectLocations: []JWTRedirectLocation{
+					{
+						Name:     "@login_url-default-cafe-ingress",
+						LoginURL: "https://test.example.com/login",
+					},
+				},
+			},
+		},
+		LimitReqZones: []LimitReqZone{
+			{
+				Name: "default/myingress",
+				Key:  "${binary_remote_addr}",
+				Size: "10m",
+				Rate: "200r/s",
+			},
+		},
+	}
+
+	ingressCfgRequestRateLimitMinions = IngressNginxConfig{
+		Ingress: Ingress{
+			Name:      "myingress",
+			Namespace: "default",
+		},
+		Servers: []Server{
+			{
+				Name:         "test.example.com",
+				ServerTokens: "off",
+				StatusZone:   "test.example.com",
+				JWTAuth: &JWTAuth{
+					Key:                  "/etc/nginx/secrets/key.jwk",
+					Realm:                "closed site",
+					Token:                "$cookie_auth_token",
+					RedirectLocationName: "@login_url-default-cafe-ingress",
+				},
+				SSL:               true,
+				SSLCertificate:    "secret.pem",
+				SSLCertificateKey: "secret.pem",
+				SSLPorts:          []int{443},
+				SSLRedirect:       true,
+				Locations: []Location{
+					{
+						Path:                "/tea",
+						Upstream:            testUpstream,
+						ProxyConnectTimeout: "10s",
+						ProxyReadTimeout:    "10s",
+						ProxySendTimeout:    "10s",
+						ClientMaxBodySize:   "2m",
+						JWTAuth: &JWTAuth{
+							Key:   "/etc/nginx/secrets/location-key.jwk",
+							Realm: "closed site",
+							Token: "$cookie_auth_token",
+						},
+						MinionIngress: &Ingress{
+							Name:      "tea-minion",
+							Namespace: "default",
+						},
+						LimitReq: &LimitReq{
+							Zone:       "default/tea-minion",
+							Burst:      100,
+							Delay:      10,
+							LogLevel:   "info",
+							DryRun:     true,
+							RejectCode: 429,
+						},
+					},
+					{
+						Path:                "/coffee",
+						Upstream:            testUpstream,
+						ProxyConnectTimeout: "10s",
+						ProxyReadTimeout:    "10s",
+						ProxySendTimeout:    "10s",
+						ClientMaxBodySize:   "2m",
+						JWTAuth: &JWTAuth{
+							Key:   "/etc/nginx/secrets/location-key.jwk",
+							Realm: "closed site",
+							Token: "$cookie_auth_token",
+						},
+						MinionIngress: &Ingress{
+							Name:      "coffee-minion",
+							Namespace: "default",
+						},
+						LimitReq: &LimitReq{
+							Zone:       "default/coffee-minion",
+							Burst:      200,
+							NoDelay:    true,
+							LogLevel:   "error",
+							RejectCode: 503,
+						},
+					},
+				},
+				HealthChecks: map[string]HealthCheck{"test": healthCheck},
+				JWTRedirectLocations: []JWTRedirectLocation{
+					{
+						Name:     "@login_url-default-cafe-ingress",
+						LoginURL: "https://test.example.com/login",
+					},
+				},
+			},
+		},
+		LimitReqZones: []LimitReqZone{
+			{
+				Name: "default/tea-minion",
+				Key:  "${binary_remote_addr}",
+				Size: "10m",
+				Rate: "200r/s",
+			},
+			{
+				Name: "default/coffee-minion",
+				Key:  "${binary_remote_addr}",
+				Size: "20m",
+				Rate: "400r/s",
+			},
 		},
 	}
 )

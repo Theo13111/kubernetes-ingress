@@ -17,7 +17,7 @@ h2 {
 </style>
 
 {{< note >}}
-NGINX Ingress Operator isn't compatible with NGINX Ingress Controller 3.2.0 at this time.  We'll update this guide and remove this note when we release a compatible version.
+NGINX Ingress Operator isn't compatible with NGINX Ingress Controller 3.4.0 at this time.  We'll update this guide and remove this note when we release a compatible version.
 {{< /note >}}
 
 ## Before you start
@@ -31,8 +31,10 @@ NGINX Ingress Operator isn't compatible with NGINX Ingress Controller 3.2.0 at t
     - To pull from the F5 Container registry, configure a docker registry secret using your JWT token from the MyF5 portal by following the instructions from [here]({{< relref "installation/nic-images/using-the-jwt-token-docker-secret" >}}).
     - It is also possible to build your own image and push it to your private Docker registry by following the instructions from [here]({{< relref "installation/building-nginx-ingress-controller.md" >}})).
 
-2. Install the NGINX Ingress Operator following the [instructions](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/v1.4.1/docs/installation.md).
-3. Create the SecurityContextConstraint as outlined in the ["Getting Started" instructions](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/v1.4.1/README.md#getting-started).
+2. Install the NGINX Ingress Operator following the [instructions](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/main/docs/installation.md).
+3. Create the SecurityContextConstraint as outlined in the ["Getting Started" instructions](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/main/README.md#getting-started).
+
+{{<note>}} If you're upgrading your operator installation to a later release, navigate [here](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/main/helm-charts/nginx-ingress) and run `kubectl apply -f crds/` or `oc apply -f crds/` as a prerequisite{{</note>}}
 
 ## Create the NGINX Ingress Controller manifest
 
@@ -49,7 +51,7 @@ spec:
     image:
       pullPolicy: IfNotPresent
       repository: nginx/nginx-ingress
-      tag: 3.3.2-ubi
+      tag: 3.4.0-ubi
     ingressClass: nginx
     kind: deployment
     nginxplus: false
@@ -68,7 +70,7 @@ kubectl apply -f nginx-ingress-controller.yaml
 
 A new instance of NGINX Ingress Controller will be deployed by the NGINX Ingress Operator in the `default` namespace with default parameters.
 
-To configure other parameters of the NginxIngressController resource, check the [documentation](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/v1.4.1/docs/nginx-ingress-controller.md).
+To configure other parameters of the NginxIngressController resource, check the [documentation](https://github.com/nginxinc/nginx-ingress-helm-operator/blob/main/docs/nginx-ingress-controller.md).
 
 ## Troubleshooting
 

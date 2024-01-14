@@ -1,0 +1,13 @@
+{
+  "k8s": [],
+  "images": [
+    {
+      "label": "regression",
+      "image": "debian"
+    },
+    {
+      "label": "regression",
+      "image": "debian-plus"
+    }
+  ]
+}

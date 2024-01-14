@@ -1,6 +1,9 @@
 package configs
 
-import conf_v1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configuration/v1"
+import (
+	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
+	conf_v1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configuration/v1"
+)
 
 // ConfigParams holds NGINX configuration parameters that affect the main NGINX config
 // as well as configs for Ingress resources.
@@ -80,6 +83,7 @@ type ConfigParams struct {
 	SlowStart                              string
 	SSLRedirect                            bool
 	UpstreamZoneSize                       string
+	UseClusterIP                           bool
 	VariablesHashBucketSize                uint64
 	VariablesHashMaxSize                   uint64
 
@@ -109,6 +113,16 @@ type ConfigParams struct {
 	SSLPorts []int
 
 	SpiffeServerCerts bool
+
+	LimitReqRate       string
+	LimitReqKey        string
+	LimitReqZoneSize   string
+	LimitReqDelay      int
+	LimitReqNoDelay    bool
+	LimitReqBurst      int
+	LimitReqDryRun     bool
+	LimitReqLogLevel   string
+	LimitReqRejectCode int
 }
 
 // StaticConfigParams holds immutable NGINX configuration parameters that affect the main NGINX config.
@@ -136,6 +150,7 @@ type StaticConfigParams struct {
 	EnableCertManager              bool
 	DynamicSSLReload               bool
 	StaticSSLPath                  string
+	NginxVersion                   nginx.Version
 }
 
 // GlobalConfigParams holds global configuration parameters. For now, it only holds listeners.
@@ -186,6 +201,10 @@ func NewDefaultConfigParams(isPlus bool) *ConfigParams {
 		MainKeepaliveRequests:         100,
 		VariablesHashBucketSize:       256,
 		VariablesHashMaxSize:          1024,
+		LimitReqKey:                   "${binary_remote_addr}",
+		LimitReqZoneSize:              "10m",
+		LimitReqLogLevel:              "error",
+		LimitReqRejectCode:            429,
 	}
 }
 

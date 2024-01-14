@@ -1,5 +1,7 @@
 package version1
 
+import "github.com/nginxinc/kubernetes-ingress/internal/nginx"
+
 // UpstreamLabels describes the Prometheus labels for an NGINX upstream.
 type UpstreamLabels struct {
 	Service           string
@@ -17,6 +19,7 @@ type IngressNginxConfig struct {
 	SpiffeClientCerts       bool
 	DynamicSSLReloadEnabled bool
 	StaticSSLPath           string
+	LimitReqZones           []LimitReqZone
 }
 
 // Ingress holds information about an Ingress resource.
@@ -59,6 +62,14 @@ type HealthCheck struct {
 	Mandatory      bool
 	Headers        map[string]string
 	TimeoutSeconds int64
+}
+
+// LimitReqZone describes a zone used for request rate limiting
+type LimitReqZone struct {
+	Name string
+	Key  string
+	Size string
+	Rate string
 }
 
 // Server describes an NGINX server.
@@ -136,6 +147,17 @@ type JWTAuth struct {
 	RedirectLocationName string
 }
 
+// LimitReq configures a request rate limit
+type LimitReq struct {
+	Zone       string
+	Burst      int
+	Delay      int
+	NoDelay    bool
+	RejectCode int
+	DryRun     bool
+	LogLevel   string
+}
+
 // Location describes an NGINX location.
 type Location struct {
 	LocationSnippets     []string
@@ -157,6 +179,7 @@ type Location struct {
 	JWTAuth              *JWTAuth
 	BasicAuth            *BasicAuth
 	ServiceName          string
+	LimitReq             *LimitReq
 
 	MinionIngress *Ingress
 }
@@ -234,6 +257,7 @@ type MainConfig struct {
 	OIDC                               bool
 	DynamicSSLReloadEnabled            bool
 	StaticSSLPath                      string
+	NginxVersion                       nginx.Version
 }
 
 // NewUpstreamWithDefaultServer creates an upstream with the default server.
