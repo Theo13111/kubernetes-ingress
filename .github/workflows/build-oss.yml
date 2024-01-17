@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch Cached Artifacts
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ inputs.go-md5 }}
@@ -184,7 +184,7 @@ jobs:
           sarif_file: "trivy-results-${{ inputs.image }}.sarif"
 
       - name: Upload Scan Results
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
         continue-on-error: true
         with:
           name: "trivy-results-${{ inputs.image }}.sarif"
