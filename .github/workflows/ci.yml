@@ -77,7 +77,7 @@ jobs:
 
       - name: Fetch Cached Binary Artifacts
         id: binary-cache
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ steps.vars.outputs.go_code_md5 }}
@@ -110,7 +110,7 @@ jobs:
         run: make cover
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
+        uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.6
         with:
           files: ./coverage.txt
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
@@ -135,7 +135,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Download Syft
-        uses: anchore/sbom-action/download-syft@c7f031d9249a826a082ea14c79d3b686a51d485a # v0.15.3
+        uses: anchore/sbom-action/download-syft@767b08fd8822486ad890abb8f1d31721bebd651c # v0.15.7
         if: github.ref_type == 'tag'
 
       - name: Install Cosign
@@ -185,7 +185,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Download Syft
-        uses: anchore/sbom-action/download-syft@c7f031d9249a826a082ea14c79d3b686a51d485a # v0.15.3
+        uses: anchore/sbom-action/download-syft@767b08fd8822486ad890abb8f1d31721bebd651c # v0.15.7
         if: github.ref_type == 'tag'
 
       - name: Install Cosign
@@ -215,7 +215,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Store Artifacts in Cache
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
@@ -237,7 +237,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Fetch Cached Artifacts
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
@@ -363,7 +363,7 @@ jobs:
           go-md5: ${{ needs.checks.outputs.go_code_md5 }}
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: ${{ steps.smoke-tests.outputs.test-results-name }}
           path: ${{ github.workspace }}/tests/${{ steps.smoke-tests.outputs.test-results-name }}.html
