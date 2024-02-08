@@ -48,6 +48,14 @@ To upgrade the CRDs, pull the chart sources as described in [Pulling the Chart](
 kubectl apply -f crds/
 ```
 
+Alternatively, CRDs can be upgraded without pulling the chart by running:
+
+```console
+kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v3.4.2/deploy/crds.yaml
+```
+
+In the above command, `v3.4.2` represents the version of NGINX Ingress Controller release rather than the Helm chart version.
+
 > **Note**
 >
 > The following warning is expected and can be ignored: `Warning: kubectl apply should be used on resource created by
@@ -79,14 +87,14 @@ To install the chart with the release name my-release (my-release is the name th
 For NGINX:
 
 ```console
-helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.0
+helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.2
 ```
 
 For NGINX Plus: (assuming you have pushed the Ingress Controller image `nginx-plus-ingress` to your private registry
 `myregistry.example.com`)
 
 ```console
-helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.0 --set controller.image.repository=myregistry.example.com/nginx-plus-ingress --set controller.nginxplus=true
+helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.2 --set controller.image.repository=myregistry.example.com/nginx-plus-ingress --set controller.nginxplus=true
 ```
 
 This will install the latest `edge` version of the Ingress Controller from GitHub Container Registry. If you prefer to
@@ -101,7 +109,7 @@ CRDs](#upgrading-the-crds).
 To upgrade the release `my-release`:
 
 ```console
-helm upgrade my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.0
+helm upgrade my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 1.1.2
 ```
 
 ### Uninstalling the Chart
@@ -142,7 +150,7 @@ upgrading/deleting the CRDs.
 1. Pull the chart sources:
 
     ```console
-    helm pull oci://ghcr.io/nginxinc/charts/nginx-ingress --untar --version 1.1.0
+    helm pull oci://ghcr.io/nginxinc/charts/nginx-ingress --untar --version 1.1.2
     ```
 
 2. Change your working directory to nginx-ingress:
@@ -228,7 +236,7 @@ The steps you should follow depend on the Helm release name:
     Selector:               app=nginx-ingress-nginx-ingress
     ```
 
-2. Checkout the latest available tag using `git checkout v3.4.0`
+2. Checkout the latest available tag using `git checkout v3.4.2`
 
 3. Navigate to `/kubernates-ingress/charts/nginx-ingress`
 
@@ -280,7 +288,7 @@ reviewing its events:
     Selector:               app=<helm_release_name>-nginx-ingress
     ```
 
-2. Checkout the latest available tag using `git checkout v3.4.0`
+2. Checkout the latest available tag using `git checkout v3.4.2`
 
 3. Navigate to `/kubernates-ingress/charts/nginx-ingress`
 
@@ -347,7 +355,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.logLevel` | The log level of the Ingress Controller. | 1 |
 |`controller.image.digest` | The image digest of the Ingress Controller. | None |
 |`controller.image.repository` | The image repository of the Ingress Controller. | nginx/nginx-ingress |
-|`controller.image.tag` | The tag of the Ingress Controller image. | 3.4.0 |
+|`controller.image.tag` | The tag of the Ingress Controller image. | 3.4.2 |
 |`controller.image.pullPolicy` | The pull policy for the Ingress Controller image. | IfNotPresent |
 |`controller.lifecycle` | The lifecycle of the Ingress Controller pods. | {} |
 |`controller.customConfigMap` | The name of the custom ConfigMap used by the Ingress Controller. If set, then the default config is ignored. | "" |
@@ -355,8 +363,8 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.config.annotations` | The annotations of the Ingress Controller configmap. | {} |
 |`controller.config.entries` | The entries of the ConfigMap for customizing NGINX configuration. See [ConfigMap resource docs](https://docs.nginx.com/nginx-ingress-controller/configuration/global-configuration/configmap-resource/) for the list of supported ConfigMap keys. | {} |
 |`controller.customPorts` | A list of custom ports to expose on the NGINX Ingress Controller pod. Follows the conventional Kubernetes yaml syntax for container ports. | [] |
-|`controller.defaultTLS.cert` | The base64-encoded TLS certificate for the default HTTPS server. **Note:** It is recommended that you specify your own certificate. Alternatively, omitting the default server secret completely will configure NGINX to reject TLS connections to the default server. |
-|`controller.defaultTLS.key` | The base64-encoded TLS key for the default HTTPS server. **Note:** It is recommended that you specify your own key. Alternatively, omitting the default server secret completely will configure NGINX to reject TLS connections to the default server. |
+|`controller.defaultTLS.cert` | The base64-encoded TLS certificate for the default HTTPS server. **Note:** It is recommended that you specify your own certificate. Alternatively, omitting the default server secret completely will configure NGINX to reject TLS connections to the default server. | "" |
+|`controller.defaultTLS.key` | The base64-encoded TLS key for the default HTTPS server. **Note:** It is recommended that you specify your own key. Alternatively, omitting the default server secret completely will configure NGINX to reject TLS connections to the default server. | "" |
 |`controller.defaultTLS.secret` | The secret with a TLS certificate and key for the default HTTPS server. The value must follow the following format: `<namespace>/<name>`. Used as an alternative to specifying a certificate and key using `controller.defaultTLS.cert` and `controller.defaultTLS.key` parameters. **Note:** Alternatively, omitting the default server secret completely will configure NGINX to reject TLS connections to the default server. | None |
 |`controller.wildcardTLS.cert` | The base64-encoded TLS certificate for every Ingress/VirtualServer host that has TLS enabled but no secret specified. If the parameter is not set, for such Ingress/VirtualServer hosts NGINX will break any attempt to establish a TLS connection. | None |
 |`controller.wildcardTLS.key` | The base64-encoded TLS key for every Ingress/VirtualServer host that has TLS enabled but no secret specified. If the parameter is not set, for such Ingress/VirtualServer hosts NGINX will break any attempt to establish a TLS connection. | None |
@@ -375,7 +383,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.initContainerResources` | The resources of the init container which is used when `controller.readOnlyRootFilesystem` is set to `true` | requests: cpu=100m,memory=128Mi |
 |`controller.replicaCount` | The number of replicas of the Ingress Controller deployment. | 1 |
 |`controller.ingressClass.name` | A class of the Ingress Controller. An IngressClass resource with the name equal to the class must be deployed. Otherwise, the Ingress Controller will fail to start. The Ingress Controller only processes resources that belong to its class - i.e. have the "ingressClassName" field resource equal to the class. The Ingress Controller processes all the VirtualServer/VirtualServerRoute/TransportServer resources that do not have the "ingressClassName" field for all versions of Kubernetes. | nginx |
-|`controller.ingressClass.create` | Creates a new IngressClass object with the name `controller.ingressClass.name`. Set to `false` to use an existing ingressClass created using `kubectl` with the same name. If you use `helm upgrade`, do not change the values from the previous release as helm will delete IngressClass objects managed by helm. If you are upgrading from a release earlier than 3.4.0, do not set the value to false. | true |
+|`controller.ingressClass.create` | Creates a new IngressClass object with the name `controller.ingressClass.name`. Set to `false` to use an existing ingressClass created using `kubectl` with the same name. If you use `helm upgrade`, do not change the values from the previous release as helm will delete IngressClass objects managed by helm. If you are upgrading from a release earlier than 3.4.2, do not set the value to false. | true |
 |`controller.ingressClass.setAsDefaultIngress` | New Ingresses without an `"ingressClassName"` field specified will be assigned the class specified in `controller.ingressClass.name`. Requires `controller.ingressClass.create`.  | false |
 |`controller.watchNamespace` | Comma separated list of namespaces the Ingress Controller should watch for resources. By default the Ingress Controller watches all namespaces. Mutually exclusive with `controller.watchNamespaceLabel`. Please note that if configuring multiple namespaces using the Helm cli `--set` option, the string needs to wrapped in double quotes and the commas escaped using a backslash - e.g. `--set controller.watchNamespace="default\,nginx-ingress"`. | "" |
 |`controller.watchNamespaceLabel` | Configures the Ingress Controller to watch only those namespaces with label foo=bar. By default the Ingress Controller watches all namespaces. Mutually exclusive with `controller.watchNamespace`. | "" |
@@ -456,9 +464,10 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |`controller.strategy` | Specifies the strategy used to replace old Pods with new ones. Docs for [Deployment update strategy](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy) and [Daemonset update strategy](https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/#daemonset-update-strategy) | {} |
 |`controller.disableIPV6` | Disable IPV6 listeners explicitly for nodes that do not support the IPV6 stack. | false |
 |`controller.defaultHTTPListenerPort`  | Sets the port for the HTTP `default_server` listener. | 80 |
-|`controller.defaultHTTPSListenerPort`  | Sets the port for the HTTPS `default_server` listener. | 443 |
+|`controller.defaultHTTPSListenerPort` | Sets the port for the HTTPS `default_server` listener. | 443 |
 |`controller.readOnlyRootFilesystem` | Configure root filesystem as read-only and add volumes for temporary data. | false |
 |`controller.enableSSLDynamicReload` | Enable lazy loading for SSL Certificates. | true |
+|`controller.enableTelemetryReporting` | Enable telemetry reporting. | true |
 |`rbac.create` | Configures RBAC. | true |
 |`prometheus.create` | Expose NGINX or NGINX Plus metrics in the Prometheus format. | true |
 |`prometheus.port` | Configures the port to scrape the metrics. | 9113 |

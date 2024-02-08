@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch Cached Artifacts
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ inputs.go-md5 }}
@@ -102,7 +102,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c # v5.5.0
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           context: ${{ inputs.tag != '' && 'git' || 'workflow' }}
           images: |
@@ -124,13 +124,13 @@ jobs:
             type=raw,value=${{ steps.tag.outputs.short }},enable=${{ inputs.tag != '' }}
           labels: |
             org.opencontainers.image.description=NGINX Ingress Controller for Kubernetes
-            org.opencontainers.image.documentation=https://docs.nginx.com/nginx-ingress-controller
-            org.opencontainers.image.vendor=NGINX Inc <kubernetes@nginx.com>
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/main/README.md
             io.artifacthub.package.logo-url=https://docs.nginx.com/nginx-ingress-controller/images/icons/NGINX-Ingress-Controller-product-icon.svg
             io.artifacthub.package.maintainers=[{"name":"NGINX Inc","email":"kubernetes@nginx.com"}]
             io.artifacthub.package.license=Apache-2.0
             io.artifacthub.package.keywords=kubernetes,ingress,nginx,controller
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Build Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -143,6 +143,7 @@ jobs:
           target: goreleaser
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ github.event_name != 'pull_request' && steps.meta.outputs.annotations || '' }}
           platforms: ${{ github.event_name != 'pull_request' && ! startsWith(github.ref, 'refs/heads/release-') && inputs.platforms || '' }}
           load: ${{ github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/release-') }}
           push: ${{ github.event_name != 'pull_request' && ! startsWith(github.ref, 'refs/heads/release-') }}
@@ -178,13 +179,13 @@ jobs:
           ignore-unfixed: "true"
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@e5f05b81d5b6ff8cfa111c80c22c5fd02a384118 # v3.23.0
+        uses: github/codeql-action/upload-sarif@b7bf0a3ed3ecfa44160715d7c442788f65f0f923 # v3.23.2
         continue-on-error: true
         with:
           sarif_file: "trivy-results-${{ inputs.image }}.sarif"
 
       - name: Upload Scan Results
-        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         continue-on-error: true
         with:
           name: "trivy-results-${{ inputs.image }}.sarif"
