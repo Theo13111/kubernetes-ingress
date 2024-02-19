@@ -6,14 +6,14 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 
 ############################################# Base images containing libs for Opentracing and FIPS #############################################
-FROM opentracing/nginx-opentracing:nginx-1.25.3@sha256:2e0268d3cd31fe047c2fe566f29731865b0c99cc99b579c6584b23cd3c7830ef as opentracing-lib
-FROM opentracing/nginx-opentracing:nginx-1.25.3-alpine@sha256:37c7de3a46ca05428450b1c64bfb2a4d2f9c1835860cef427928fcf11c178f0e as alpine-opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.25.4@sha256:2c40c39be2946c080ddb0a43cfdcb856c320ec6fcc9a9126d6f8eafa452787a6 as opentracing-lib
+FROM opentracing/nginx-opentracing:nginx-1.25.4-alpine@sha256:682076ac800d0703bf72520116e6a477bb0587551b91882d82d9735e187fcc9f as alpine-opentracing-lib
 FROM ghcr.io/nginxinc/alpine-fips:0.1.0-alpine3.17@sha256:f00b3f266422feaaac7b733b46903bd19eb1cd1caa6991131576f5f767db76f8 as alpine-fips-3.17
 FROM ghcr.io/nginxinc/alpine-fips:0.1.2-alpine3.19@sha256:67595f52053f328fd731bf493d8dc72c1fd956e5f1a2f9a579cc78c5f5f50daa as alpine-fips-3.19
 
 
 ############################################# Base image for Alpine #############################################
-FROM nginx:1.25.3-alpine@sha256:156d75f07c59b2fd59d3d1470631777943bb574135214f0a90c7bb82bde916da AS alpine
+FROM nginx:1.25.4-alpine@sha256:6a2f8b28e45c4adea04ec207a251fd4a2df03ddc930f782af51e315ebc76e9a9 AS alpine
 
 RUN --mount=type=bind,from=alpine-opentracing-lib,target=/tmp/ot/ \
 	apk add --no-cache libcap libstdc++ \
@@ -25,7 +25,7 @@ RUN --mount=type=bind,from=alpine-opentracing-lib,target=/tmp/ot/ \
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.25.3@sha256:8b4c32060a41e8c07e4b33c2e2695510c729314d84b2b71a1c5d7002aaf0b5ad AS debian
+FROM nginx:1.25.4@sha256:c26ae7472d624ba1fafd296e73cecc4f93f853088e6a9c13c0d52f6ca5865107 AS debian
 
 RUN --mount=type=bind,from=opentracing-lib,target=/tmp/ot/ \
 	apt-get update \
@@ -38,7 +38,7 @@ RUN --mount=type=bind,from=opentracing-lib,target=/tmp/ot/ \
 
 
 ############################################# Base image for UBI #############################################
-FROM nginxcontrib/nginx:1.25.3-ubi@sha256:4a3e891705687db11a02a3ba37a1ce42b01349d49198a956576787ab4a3a7a0c AS ubi
+FROM nginxcontrib/nginx:1.25.4-ubi@sha256:e5a56115996ebe12fe7678645a4a33fd8ce345c38e778b1f5b058b14267a50de AS ubi
 ARG IC_VERSION
 
 LABEL name="NGINX Ingress Controller" \
@@ -138,7 +138,7 @@ RUN --mount=type=bind,from=alpine-fips-3.17,target=/tmp/fips/ \
 
 
 ############################################# Base image for Debian with NGINX Plus #############################################
-FROM debian:12-slim@sha256:f4a83aa865a2b4a064ff142aa91c713180df9fcb86ce676b5de2981029379c37 AS debian-plus
+FROM debian:12-slim@sha256:d02c76d82364cedca16ba3ed6f9102406fa9fa8833076a609cabf14270f43dfc AS debian-plus
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
@@ -162,7 +162,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for Debian with NGINX Plus and App Protect WAF/DoS #############################################
-FROM debian:11-slim@sha256:41c3fecb70015fd9c72d6df95573de3f92d5f4f46fdabe8dbd8d2bfb1531594d as debian-plus-nap
+FROM debian:12-slim@sha256:d02c76d82364cedca16ba3ed6f9102406fa9fa8833076a609cabf14270f43dfc as debian-plus-nap
 ARG NAP_MODULES
 
 RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode=0644 \
@@ -383,7 +383,7 @@ LABEL org.opencontainers.image.version="${IC_VERSION}" \
 
 
 ############################################# Build nginx-ingress in golang container #############################################
-FROM golang:1.21-alpine@sha256:a6a7f1fcf12f5efa9e04b1e75020931a616cd707f14f62ab5262bfbe109aa84a AS builder
+FROM golang:1.22-alpine@sha256:8e96e6cff6a388c2f70f5f662b64120941fcd7d4b89d62fec87520323a316bd9 AS builder
 ARG IC_VERSION
 ARG TARGETARCH
 
