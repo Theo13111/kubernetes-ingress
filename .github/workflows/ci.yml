@@ -48,7 +48,7 @@ jobs:
       forked_workflow: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: Setup Golang Environment
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
@@ -100,7 +100,7 @@ jobs:
 
       - name: Fetch Cached Binary Artifacts
         id: binary-cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ steps.vars.outputs.go_code_md5 }}
@@ -124,7 +124,7 @@ jobs:
     needs: checks
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Setup Golang Environment
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
@@ -134,7 +134,7 @@ jobs:
         run: make cover
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8 # v4.1.1
         with:
           files: ./coverage.txt
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
@@ -149,12 +149,12 @@ jobs:
       contents: write # for lucacome/draft-release
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           fetch-depth: 0
 
       - name: Create/Update Draft
-        uses: lucacome/draft-release@a98777f0bae0a6815cc1df77ebe48ca70e7cb970 # v1.0.3
+        uses: lucacome/draft-release@e076259ceb036bc5f2c2a76559784c12cf8d2e74 # v1.0.4
         id: release-notes
         with:
           minor-label: "enhancement"
@@ -186,7 +186,7 @@ jobs:
       issues: write # for goreleaser/goreleaser-action to close milestone
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           fetch-depth: 0
 
@@ -197,7 +197,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Download Syft
-        uses: anchore/sbom-action/download-syft@9fece9e20048ca9590af301449208b2b8861333b # v0.15.9
+        uses: anchore/sbom-action/download-syft@ab5d7b5f48981941c4c5d6bf33aeb98fe3bae38c # v0.15.10
         if: github.ref_type == 'tag'
 
       - name: Install Cosign
@@ -228,7 +228,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Store Artifacts in Cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
@@ -252,16 +252,16 @@ jobs:
       id-token: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: Fetch Cached Artifacts
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
 
       - name: Docker Buildx
-        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+        uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20 # v3.2.0
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
@@ -279,7 +279,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -297,7 +297,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Build Base Container
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           file: build/Dockerfile
           context: "."
@@ -317,7 +317,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' && steps.base_exists.outputs.exists != 0 }}
 
       - name: Build Docker Image ${{ matrix.image }}
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           file: build/Dockerfile
           context: "."
@@ -389,7 +389,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - id: set-matrix
         run: |
@@ -400,7 +400,7 @@ jobs:
           fi
 
       - name: Docker Buildx
-        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+        uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20 # v3.2.0
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -412,7 +412,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -428,7 +428,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Build Test-Runner Container
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           file: tests/Dockerfile
           context: "."
@@ -451,7 +451,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
       - name: NAP modules
         id: nap_modules
@@ -470,7 +470,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -488,7 +488,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' }}
 
       - name: Docker Buildx
-        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+        uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20 # v3.2.0
         if: ${{ needs.checks.outputs.forked_workflow == 'false' && steps.base_exists.outputs.exists != 0 }}
 
       - name: Setup QEMU
@@ -498,7 +498,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' && steps.base_exists.outputs.exists != 0 }}
 
       - name: Build Base Container
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           file: build/Dockerfile
           context: "."
@@ -687,19 +687,19 @@ jobs:
       packages: write # for helm to push to GHCR
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           path: kic
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: DockerHub Login
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -722,7 +722,7 @@ jobs:
           helm push ${{ steps.package.outputs.path }} oci://registry-1.docker.io/nginxcharts
 
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           repository: nginxinc/helm-charts
           fetch-depth: 1
