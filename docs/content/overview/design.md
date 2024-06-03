@@ -1,13 +1,13 @@
 ---
+docs: DOCS-609
+doctypes:
+- reference
 title: How NGINX Ingress Controller is Designed
-description: "This document explains how the F5 NGINX Ingress Controller is designed, and how it works with NGINX and NGINX Plus."
-weight: 200
-doctypes: ["reference"]
 toc: true
-docs: "DOCS-609"
+weight: 200
 ---
 
-<br>
+This document explains how the F5 NGINX Ingress Controller is designed, and how it differs when using NGINX or NGINX Plus.
 
 The intended audience for this information is primarily the two following groups:
 
@@ -277,7 +277,7 @@ NGINX reloads take roughly 200ms. The factors affecting reload time are configur
 
 Most of the time, if `nginx -s reload` executes, the reload will also succeed. In the rare case a reload fails, the NGINX master process will print the an error message. This is an example:
 
-```
+```shell
 2022/07/09 00:56:42 [emerg] 1353#1353: limit_req "one" uses the "$remote_addr" key while previously it used the "$binary_remote_addr" key
 ```
 

@@ -1,16 +1,15 @@
 ---
+docs: DOCS-592
+doctypes:
+- ''
 title: Advanced Configuration with Snippets
-description: "Snippets allow you to insert raw NGINX config into different contexts of the NGINX configurations that the Ingress Controller generates."
-weight: 1800
-doctypes: [""]
 toc: true
-docs: "DOCS-592"
+weight: 1800
 ---
 
+Snippets allow you to insert raw NGINX config into different contexts of the NGINX configurations that NGINX Ingress Controller generates. Snippets are intended for advanced NGINX users who need more control over the generated NGINX configuration, and can be used in cases where Annotations and ConfigMap entries would not apply. 
 
-Snippets allow you to insert raw NGINX config into different contexts of the NGINX configurations that the Ingress Controller generates. These should be used as a last-resort solution in cases where annotations and ConfigMap entries cannot help. Snippets are intended for advanced NGINX users who need more control over the generated NGINX configuration.
-
-Snippets are also available through the [ConfigMap](/nginx-ingress-controller/configuration/global-configuration/configmap-resource). Annotations take precedence over the ConfigMap.
+Snippets are also available through the [ConfigMap]({{< relref "/configuration/global-configuration/configmap-resource.md" >}})
 
 ## Using Snippets
 
@@ -105,7 +104,7 @@ If a snippet includes an invalid NGINX configuration, the Ingress Controller wil
 
 An example of an error from the logs:
 
-```
+```shell
 [emerg] 31#31: unknown directive "badd_header" in /etc/nginx/conf.d/default-cafe-ingress-with-snippets.conf:54
 Event(v1.ObjectReference{Kind:"Ingress", Namespace:"default", Name:"cafe-ingress-with-snippets", UID:"f9656dc9-63a6-41dd-a499-525b0e0309bb", APIVersion:"extensions/v1beta1", ResourceVersion:"2322030", FieldPath:""}): type: 'Warning' reason: 'AddedOrUpdatedWithError' Configuration for default/cafe-ingress-with-snippets was added or updated, but not applied: Error reloading NGINX for default/cafe-ingress-with-snippets: nginx reload failed: Command /usr/sbin/nginx -s reload stdout: ""
 stderr: "nginx: [emerg] unknown directive \"badd_header\" in /etc/nginx/conf.d/default-cafe-ingress-with-snippets.conf:54\n"
@@ -114,7 +113,7 @@ finished with error: exit status 1
 
 An example of an event with an error (you can view events associated with the Ingress by running `kubectl describe -n nginx-ingress ingress nginx-ingress`):
 
-```
+```shell
 Events:
 Type     Reason                   Age                From                      Message
 ----     ------                   ----               ----                      -------

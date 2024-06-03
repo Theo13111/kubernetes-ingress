@@ -20,15 +20,17 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       go_code_md5: ${{ steps.vars.outputs.go_code_md5 }}
+      docker_md5: ${{ steps.vars.outputs.docker_md5 }}
       chart_version: ${{ steps.vars.outputs.chart_version }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
       - name: Output Variables
         id: vars
         run: |
-          echo go_code_md5=$(find . -type f \( -name "*.go" -o -name go.mod -o -name go.sum -o -name "*.tmpl" -o -name .goreleaser.yml -o -name .github/data/version.txt \) -not -path "./docs*"  -exec md5sum {} + | LC_ALL=C sort  | md5sum | awk '{ print $1 }') >> $GITHUB_OUTPUT
+          ./.github/scripts/variables.sh go_code_md5 >> $GITHUB_OUTPUT
+          ./.github/scripts/variables.sh docker_md5 >> $GITHUB_OUTPUT
           source .github/data/version.txt
           echo "chart_version=${HELM_CHART_VERSION}" >> $GITHUB_OUTPUT
           cat $GITHUB_OUTPUT
@@ -43,12 +45,12 @@ jobs:
       contents: write # for lucacome/draft-release
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           fetch-depth: 0
 
       - name: Create/Update Draft
-        uses: lucacome/draft-release@a98777f0bae0a6815cc1df77ebe48ca70e7cb970 # v1.0.3
+        uses: lucacome/draft-release@8a63d32c79a171ae6048e614a8988f0ac3ed56d4 # v1.1.0
         id: release-notes
         with:
           minor-label: "enhancement"
@@ -87,7 +89,9 @@ jobs:
       platforms: ${{ matrix.platforms }}
       image: ${{ matrix.image }}
       go-md5: ${{ needs.checks.outputs.go_code_md5 }}
+      base-image-md5: ${{ needs.checks.outputs.docker_md5 }}
       publish-image: false
+      forked-workflow: true
     permissions:
       contents: read
       actions: read
@@ -115,8 +119,10 @@ jobs:
       image: ${{ matrix.image }}
       target: ${{ matrix.target }}
       go-md5: ${{ needs.checks.outputs.go_code_md5 }}
+      base-image-md5: ${{ needs.checks.outputs.docker_md5 }}
       release-url: ${{ needs.release-notes.outputs.release-url }}
       publish-image: false
+      forked-workflow: true
     permissions:
       contents: read
       security-events: write
@@ -168,9 +174,11 @@ jobs:
       image: ${{ matrix.image }}
       target: ${{ matrix.target }}
       go-md5: ${{ needs.checks.outputs.go_code_md5 }}
+      base-image-md5: ${{ needs.checks.outputs.docker_md5 }}
       nap_modules: ${{ matrix.nap_modules }}
       release-url: ${{ needs.release-notes.outputs.release-url }}
       publish-image: false
+      forked-workflow: true
     permissions:
       contents: read
       security-events: write

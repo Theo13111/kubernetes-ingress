@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"github.com/nginxinc/kubernetes-ingress/internal/configs/version2"
 	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
 	conf_v1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configuration/v1"
 )
@@ -70,6 +71,7 @@ type ConfigParams struct {
 	ProxyHideHeaders                       []string
 	ProxyMaxTempFileSize                   string
 	ProxyPassHeaders                       []string
+	ProxySetHeaders                        []version2.Header
 	ProxyProtocol                          bool
 	ProxyReadTimeout                       string
 	ProxySendTimeout                       string
@@ -123,6 +125,7 @@ type ConfigParams struct {
 	LimitReqDryRun     bool
 	LimitReqLogLevel   string
 	LimitReqRejectCode int
+	LimitReqScale      bool
 }
 
 // StaticConfigParams holds immutable NGINX configuration parameters that affect the main NGINX config.
@@ -150,6 +153,7 @@ type StaticConfigParams struct {
 	EnableCertManager              bool
 	DynamicSSLReload               bool
 	StaticSSLPath                  string
+	DynamicWeightChangesReload     bool
 	NginxVersion                   nginx.Version
 }
 

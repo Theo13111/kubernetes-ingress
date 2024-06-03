@@ -1,22 +1,18 @@
 ---
+docs: DOCS-589
+doctypes:
+- ''
 title: Reporting Resources Status
-
-description:
-weight: 1900
-doctypes: [""]
-aliases:
-    - /report-ingress-status/
 toc: true
-docs: "DOCS-589"
+weight: 1900
 ---
-
 
 ## Ingress Resources
 
 An Ingress resource can have a status that includes the address (an IP address or a DNS name), through which the hosts of that Ingress resource are publicly accessible.
 You can see the address in the output of the `kubectl get ingress` command, in the ADDRESS column, as shown below:
 
-```
+```shell
 $ kubectl get ingresses
 NAME           HOSTS              ADDRESS           PORTS     AGE
 cafe-ingress   cafe.example.com   12.13.23.123      80, 443   2m
@@ -31,23 +27,23 @@ The Ingress Controller must be configured to report an Ingress status:
 
 See the docs about [ConfigMap keys](/nginx-ingress-controller/configuration/global-configuration/configmap-resource) and [Command-line arguments](/nginx-ingress-controller/configuration/global-configuration/command-line-arguments).
 
-Notes: The Ingress Controller does not clear the status of Ingress resources when it is being shut down.
+Notes: NGINX Ingress Controller does not clear the status of Ingress resources when it is being shut down.
 
 ## VirtualServer and VirtualServerRoute Resources
 
 A VirtualServer or VirtualServerRoute resource includes the status field with information about the state of the resource and the IP address, through which the hosts of that resource are publicly accessible.
 You can see the status in the output of the `kubectl get virtualservers` or `kubectl get virtualserverroutes` commands as shown below:
 
-```
-$ kubectl get virtualservers
+```shell
+kubectl get virtualservers
   NAME   STATE   HOST                   IP            PORTS      AGE
   cafe   Valid   cafe.example.com       12.13.23.123  [80,443]   34s
 ```
 
 To see an external hostname address associated with a VirtualServer resource, use the `-o wide` option:
 
-```
-$ kubectl get virtualservers -o wide
+```shell
+kubectl get virtualservers -o wide
   NAME   STATE   HOST               IP    EXTERNALHOSTNAME                                                         PORTS      AGE
   cafe   Valid   cafe.example.com         ae430f41a1a0042908655abcdefghijkl-12345678.eu-west-2.elb.amazonaws.com   [80,443]   106s
 ```
@@ -56,8 +52,8 @@ $ kubectl get virtualservers -o wide
 
 In order to see additional addresses or extra information about the `Status` of the resource, use the following command:
 
-```
-$ kubectl describe virtualserver <NAME>
+```shell
+kubectl describe virtualserver <NAME>
 . . .
 Status:
   External Endpoints:
@@ -114,16 +110,16 @@ Notes: The Ingress Controller does not clear the status of VirtualServer and Vir
 A Policy resource includes the status field with information about the state of the resource.
 You can see the status in the output of the `kubectl get policy` command as shown below:
 
-```
-$ kubectl get policy
+```shell
+kubectl get policy
   NAME              STATE   AGE
   webapp-policy     Valid   30s
 ```
 
 In order to see additional addresses or extra information about the `Status` of the resource, use the following command:
 
-```
-$ kubectl describe policy <NAME>
+```shell
+kubectl describe policy <NAME>
 . . .
 Status:
   Message:  Configuration for default/webapp-policy was added or updated
@@ -148,16 +144,16 @@ The following fields are reported in Policy status:
 A TransportServer resource includes the status field with information about the state of the resource.
 You can see the status in the output of the `kubectl get transportserver` command as shown below:
 
-```
-$ kubectl get transportserver
+```shell
+kubectl get transportserver
   NAME      STATE   REASON           AGE
   dns-tcp   Valid   AddedOrUpdated   47m
 ```
 
 In order to see additional addresses or extra information about the `Status` of the resource, use the following command:
 
-```
-$ kubectl describe transportserver <NAME>
+```shell
+kubectl describe transportserver <NAME>
 . . .
 Status:
   Message:  Configuration for default/dns-tcp was added or updated

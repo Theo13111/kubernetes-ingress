@@ -209,9 +209,10 @@ type ActionRedirect struct {
 
 // ActionReturn defines a return in an Action.
 type ActionReturn struct {
-	Code int    `json:"code"`
-	Type string `json:"type"`
-	Body string `json:"body"`
+	Code    int      `json:"code"`
+	Type    string   `json:"type"`
+	Body    string   `json:"body"`
+	Headers []Header `json:"headers"`
 }
 
 // ActionProxy defines a proxy in an Action.
@@ -274,7 +275,6 @@ type ErrorPage struct {
 // ErrorPageReturn defines a return for an ErrorPage.
 type ErrorPageReturn struct {
 	ActionReturn `json:",inline"`
-	Headers      []Header `json:"headers"`
 }
 
 // ErrorPageRedirect defines a redirect for an ErrorPage.
@@ -606,6 +606,7 @@ type RateLimit struct {
 	DryRun     *bool  `json:"dryRun"`
 	LogLevel   string `json:"logLevel"`
 	RejectCode *int   `json:"rejectCode"`
+	Scale      bool   `json:"scale"`
 }
 
 // JWTAuth holds JWT authentication configuration.
@@ -670,7 +671,8 @@ type WAF struct {
 
 // SecurityLog defines the security log of a WAF policy.
 type SecurityLog struct {
-	Enable    bool   `json:"enable"`
-	ApLogConf string `json:"apLogConf"`
-	LogDest   string `json:"logDest"`
+	Enable      bool   `json:"enable"`
+	ApLogConf   string `json:"apLogConf"`
+	ApLogBundle string `json:"apLogBundle"`
+	LogDest     string `json:"logDest"`
 }
