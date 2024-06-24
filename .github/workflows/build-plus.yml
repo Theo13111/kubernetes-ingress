@@ -53,7 +53,7 @@ jobs:
     runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-22.04' || 'kic-plus' }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
 
@@ -161,7 +161,7 @@ jobs:
         if: ${{ ! inputs.forked-workflow }}
 
       - name: Build Base Container
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        uses: docker/build-push-action@31159d49c0d4756269a0940a750801a1ea5d7003 # v6.1.0
         with:
           file: build/Dockerfile
           context: "."
@@ -183,7 +183,7 @@ jobs:
         if: ${{ ! inputs.forked-workflow && steps.base_exists.outputs.exists != 0 }}
 
       - name: Build Plus Docker image
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        uses: docker/build-push-action@31159d49c0d4756269a0940a750801a1ea5d7003 # v6.1.0
         with:
           file: build/Dockerfile
           context: "."
@@ -230,7 +230,7 @@ jobs:
         if: ${{ inputs.publish-aws-market-place }}
 
       - name: Publish to AWS Marketplace
-        uses: nginxinc/aws-marketplace-publish@be512a7ae9666098bc4429a1afa27a11be6a3995 # v1.0.3
+        uses: nginxinc/aws-marketplace-publish@9f178512e8e7658fe4aab73d1dac15f3f86fb7b4 # v1.0.4
         continue-on-error: true
         with:
           version: ${{ steps.aws.outputs.version }}
@@ -254,7 +254,7 @@ jobs:
         if: ${{ inputs.publish-image }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@fd25fed6972e341ff0007ddb61f77e88103953c2 # 0.21.0
+        uses: aquasecurity/trivy-action@7c2007bcb556501da015201bcba5aa14069b74e2 # 0.23.0
         continue-on-error: true
         with:
           image-ref: ${{ steps.trivy-tag.outputs.tag }}
@@ -264,7 +264,7 @@ jobs:
         if: ${{ inputs.publish-image }}
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
+        uses: github/codeql-action/upload-sarif@23acc5c183826b7a8a97bce3cecc52db901f8251 # v3.25.10
         continue-on-error: true
         with:
           sarif_file: "trivy-results-${{ inputs.image }}.sarif"
