@@ -31,13 +31,13 @@ import (
 
 const (
 	pemFileNameForWildcardTLSSecret = "/etc/nginx/secrets/wildcard" // #nosec G101
-	appProtectBundleFolder          = "/etc/nginx/waf/bundles/"
 	appProtectPolicyFolder          = "/etc/nginx/waf/nac-policies/"
 	appProtectLogConfFolder         = "/etc/nginx/waf/nac-logconfs/"
 	appProtectUserSigFolder         = "/etc/nginx/waf/nac-usersigs/"
 	appProtectUserSigIndex          = "/etc/nginx/waf/nac-usersigs/index.conf"
 	appProtectDosPolicyFolder       = "/etc/nginx/dos/policies/"
 	appProtectDosLogConfFolder      = "/etc/nginx/dos/logconfs/"
+	appProtectDosAllowListFolder    = "/etc/nginx/dos/allowlist/"
 )
 
 // DefaultServerSecretPath is the full path to the Secret with a TLS cert and a key for the default server. #nosec G101
@@ -1320,6 +1320,13 @@ func (cnf *Configurator) UpdateConfig(cfgParams *ConfigParams, resources Extende
 		}
 	}
 
+	if cfgParams.TransportServerTemplate != nil {
+		err := cnf.templateExecutorV2.UpdateTransportServerTemplate(cfgParams.TransportServerTemplate)
+		if err != nil {
+			return allWarnings, fmt.Errorf("error when parsing the TransportServer template: %w", err)
+		}
+	}
+
 	mainCfg := GenerateNginxMainConfig(cnf.staticCfgParams, cfgParams)
 	mainCfgContent, err := cnf.templateExecutor.ExecuteMainConfigTemplate(mainCfg)
 	if err != nil {
@@ -1604,106 +1611,6 @@ func (cnf *Configurator) getMinionIngressAnnotations(annotationSet map[string]bo
 	return annotationSet
 }
 
-// GetServiceCount returns the total number of unique services referenced by Ingresses, VS's, VSR's, and TS's
-func (cnf *Configurator) GetServiceCount() int {
-	setOfUniqueServices := make(map[string]bool)
-	cnf.addVSAndVSRServicesToSet(setOfUniqueServices)
-	cnf.addTSServicesToSet(setOfUniqueServices)
-	cnf.addIngressesServicesToSet(setOfUniqueServices)
-	return len(setOfUniqueServices)
-}
-
-// addVSAndVSRServicesToSet adds services from VirtualServers and VirtualServerRoutes to the set
-func (cnf *Configurator) addVSAndVSRServicesToSet(set map[string]bool) {
-	for _, vs := range cnf.virtualServers {
-		ns := vs.VirtualServer.Namespace
-		for _, upstream := range vs.VirtualServer.Spec.Upstreams {
-			svc := upstream.Service
-			addServiceToSet(set, ns, svc)
-
-			if upstream.Backup != "" {
-				addServiceToSet(set, ns, upstream.Backup)
-			}
-
-			if upstream.HealthCheck != nil && upstream.HealthCheck.GRPCService != "" {
-				addServiceToSet(set, ns, upstream.HealthCheck.GRPCService)
-			}
-		}
-
-		for _, vsr := range vs.VirtualServerRoutes {
-			ns := vsr.Namespace
-			for _, upstream := range vsr.Spec.Upstreams {
-				svc := upstream.Service
-				addServiceToSet(set, ns, svc)
-
-				if upstream.Backup != "" {
-					addServiceToSet(set, ns, upstream.Backup)
-				}
-
-				if upstream.HealthCheck != nil && upstream.HealthCheck.GRPCService != "" {
-					addServiceToSet(set, ns, upstream.HealthCheck.GRPCService)
-				}
-			}
-		}
-	}
-}
-
-// addTSServicesToSet adds services from TransportServers to the set
-func (cnf *Configurator) addTSServicesToSet(set map[string]bool) {
-	for _, ts := range cnf.transportServers {
-		ns := ts.TransportServer.Namespace
-		for _, upstream := range ts.TransportServer.Spec.Upstreams {
-			svc := upstream.Service
-			addServiceToSet(set, ns, svc)
-
-			if upstream.Backup != "" {
-				addServiceToSet(set, ns, upstream.Backup)
-			}
-
-		}
-	}
-}
-
-// addIngressesServicesToSet adds services from Ingresses to the set
-func (cnf *Configurator) addIngressesServicesToSet(set map[string]bool) {
-	for _, ing := range cnf.ingresses {
-		cnf.addIngressServicesToSet(ing, set)
-	}
-	for _, mergeIngs := range cnf.mergeableIngresses {
-		cnf.addIngressServicesToSet(mergeIngs.Master, set)
-		for _, minion := range mergeIngs.Minions {
-			cnf.addIngressServicesToSet(minion, set)
-		}
-	}
-}
-
-// addIngressServicesToSet processes a single ingress and adds its services to the set
-func (cnf *Configurator) addIngressServicesToSet(ing *IngressEx, set map[string]bool) {
-	if ing == nil || ing.Ingress == nil {
-		return
-	}
-	ns := ing.Ingress.Namespace
-	if ing.Ingress.Spec.DefaultBackend != nil && ing.Ingress.Spec.DefaultBackend.Service != nil {
-		svc := ing.Ingress.Spec.DefaultBackend.Service.Name
-		addServiceToSet(set, ns, svc)
-	}
-	for _, rule := range ing.Ingress.Spec.Rules {
-		if rule.HTTP != nil {
-			for _, path := range rule.HTTP.Paths {
-				if path.Backend.Service != nil {
-					svc := path.Backend.Service.Name
-					addServiceToSet(set, ns, svc)
-				}
-			}
-		}
-	}
-}
-
-// Helper function to add services to the set
-func addServiceToSet(set map[string]bool, ns string, svc string) {
-	set[fmt.Sprintf("%s/%s", ns, svc)] = true
-}
-
 // GetVirtualServerCounts returns the total count of
 // VirtualServer and VirtualServerRoute resources that are handled by the Ingress Controller
 func (cnf *Configurator) GetVirtualServerCounts() (int, int) {
@@ -1773,6 +1680,11 @@ func (cnf *Configurator) updateApResources(ingEx *IngressEx) *AppProtectResource
 
 func (cnf *Configurator) updateDosResource(dosEx *DosEx) {
 	if dosEx != nil {
+		if dosEx.DosProtected != nil {
+			allowListFileName := appProtectDosAllowListFileName(dosEx.DosProtected.GetNamespace(), dosEx.DosProtected.GetName())
+			allowListContent := generateApDosAllowListFileContent(dosEx.DosProtected.Spec.AllowList)
+			cnf.nginxManager.CreateAppProtectResourceFile(allowListFileName, allowListContent)
+		}
 		if dosEx.DosPolicy != nil {
 			policyFileName := appProtectDosPolicyFileName(dosEx.DosPolicy.GetNamespace(), dosEx.DosPolicy.GetName())
 			policyContent := generateApResourceFileContent(dosEx.DosPolicy)
@@ -1829,6 +1741,48 @@ func generateApResourceFileContent(apResource *unstructured.Unstructured) []byte
 	// Safe to ignore errors since validation already checked those
 	spec, _, _ := unstructured.NestedMap(apResource.Object, "spec")
 	data, _ := json.Marshal(spec)
+	return data
+}
+
+func generateApDosAllowListFileContent(allowList []v1beta1.AllowListEntry) []byte {
+	type IPAddress struct {
+		IPAddress string `json:"ipAddress"`
+	}
+
+	type IPAddressList struct {
+		IPAddresses   []IPAddress `json:"ipAddresses"`
+		BlockRequests string      `json:"blockRequests"`
+	}
+
+	type Policy struct {
+		IPAddressLists []IPAddressList `json:"ip-address-lists"`
+	}
+
+	type AllowListPolicy struct {
+		Policy Policy `json:"policy"`
+	}
+
+	ipAddresses := make([]IPAddress, len(allowList))
+	for i, entry := range allowList {
+		ipAddresses[i] = IPAddress{IPAddress: entry.IPWithMask}
+	}
+
+	allowListPolicy := AllowListPolicy{
+		Policy: Policy{
+			IPAddressLists: []IPAddressList{
+				{
+					IPAddresses:   ipAddresses,
+					BlockRequests: "transparent",
+				},
+			},
+		},
+	}
+
+	data, err := json.Marshal(allowListPolicy)
+	if err != nil {
+		return nil
+	}
+
 	return data
 }
 
@@ -1956,6 +1910,10 @@ func appProtectDosLogConfFileName(namespace string, name string) string {
 	return fmt.Sprintf("%s%s_%s.json", appProtectDosLogConfFolder, namespace, name)
 }
 
+func appProtectDosAllowListFileName(namespace string, name string) string {
+	return fmt.Sprintf("%s%s_%s.json", appProtectDosAllowListFolder, namespace, name)
+}
+
 // DeleteAppProtectDosPolicy updates Ingresses and VirtualServers that use AP Dos Policy after that policy is deleted
 func (cnf *Configurator) DeleteAppProtectDosPolicy(resource *unstructured.Unstructured) {
 	cnf.nginxManager.DeleteAppProtectResourceFile(appProtectDosPolicyFileName(resource.GetNamespace(), resource.GetName()))
@@ -1964,6 +1922,11 @@ func (cnf *Configurator) DeleteAppProtectDosPolicy(resource *unstructured.Unstru
 // DeleteAppProtectDosLogConf updates Ingresses and VirtualServers that use AP Log Configuration after that policy is deleted
 func (cnf *Configurator) DeleteAppProtectDosLogConf(resource *unstructured.Unstructured) {
 	cnf.nginxManager.DeleteAppProtectResourceFile(appProtectDosLogConfFileName(resource.GetNamespace(), resource.GetName()))
+}
+
+// DeleteAppProtectDosAllowList updates Ingresses and VirtualServers that use AP Allow List Configuration after that policy is deleted
+func (cnf *Configurator) DeleteAppProtectDosAllowList(obj *v1beta1.DosProtectedResource) {
+	cnf.nginxManager.DeleteAppProtectResourceFile(appProtectDosAllowListFileName(obj.Namespace, obj.Name))
 }
 
 // AddInternalRouteConfig adds internal route server to NGINX Configuration and reloads NGINX
@@ -1993,6 +1956,9 @@ func (cnf *Configurator) AddOrUpdateSecret(secret *api_v1.Secret) string {
 		return cnf.addOrUpdateHtpasswdSecret(secret)
 	case secrets.SecretTypeOIDC:
 		// OIDC ClientSecret is not required on the filesystem, it is written directly to the config file.
+		return ""
+	case secrets.SecretTypeAPIKey:
+		// APIKey ClientSecret is not required on the filesystem, it is written directly to the config file.
 		return ""
 	default:
 		return cnf.addOrUpdateTLSSecret(secret)

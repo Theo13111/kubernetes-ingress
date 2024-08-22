@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
@@ -16,8 +15,10 @@ import (
 )
 
 const (
-	dynamicSSLReloadParam     = "ssl-dynamic-reload"
-	dynamicWeightChangesParam = "weight-changes-dynamic-reload"
+	dynamicSSLReloadParam         = "ssl-dynamic-reload"
+	dynamicWeightChangesParam     = "weight-changes-dynamic-reload"
+	appProtectLogLevelDefault     = "fatal"
+	appProtectEnforcerAddrDefault = "127.0.0.1:50000"
 )
 
 var (
@@ -64,6 +65,9 @@ var (
 	appProtectDosMaxDaemons = flag.Int("app-protect-dos-max-daemons", 0, "Max number of ADMD instances. Requires -nginx-plus and -enable-app-protect-dos.")
 	appProtectDosMaxWorkers = flag.Int("app-protect-dos-max-workers", 0, "Max number of nginx processes to support. Requires -nginx-plus and -enable-app-protect-dos.")
 	appProtectDosMemory     = flag.Int("app-protect-dos-memory", 0, "RAM memory size to consume in MB. Requires -nginx-plus and -enable-app-protect-dos.")
+
+	appProtectEnforcerAddress = flag.String("app-protect-enforcer-address", appProtectEnforcerAddrDefault,
+		`Sets address for App Protect v5 Enforcer. Requires -nginx-plus and -enable-app-protect.`)
 
 	agent              = flag.Bool("agent", false, "Enable NGINX Agent")
 	agentInstanceGroup = flag.String("agent-instance-group", "nginx-ingress-controller", "Grouping used to associate NGINX Ingress Controller instances")
@@ -193,9 +197,6 @@ var (
 	enableExternalDNS = flag.Bool("enable-external-dns", false,
 		"Enable external-dns controller for VirtualServer resources. Requires -enable-custom-resources")
 
-	includeYearInLogs = flag.Bool("include-year", false,
-		"Option to include the year in the log header")
-
 	disableIPV6 = flag.Bool("disable-ipv6", false,
 		`Disable IPV6 listeners explicitly for nodes that do not support the IPV6 stack`)
 
@@ -220,11 +221,9 @@ func parseFlags() {
 		os.Exit(0)
 	}
 
-	initialChecks()
-
-	validateWatchedNamespaces()
-
-	validationChecks()
+	mustValidateInitialChecks()
+	mustValidateWatchedNamespaces()
+	mustValidateFlags()
 
 	if *enableTLSPassthrough && !*enableCustomResources {
 		glog.Fatal("enable-tls-passthrough flag requires -enable-custom-resources")
@@ -294,13 +293,13 @@ func parseFlags() {
 	}
 }
 
-func initialChecks() {
+func mustValidateInitialChecks() {
 	err := flag.Lookup("logtostderr").Value.Set("true")
 	if err != nil {
 		glog.Fatalf("Error setting logtostderr to true: %v", err)
 	}
 
-	err = flag.Lookup("include_year").Value.Set(strconv.FormatBool(*includeYearInLogs))
+	err = flag.Lookup("include_year").Value.Set("true")
 	if err != nil {
 		glog.Fatalf("Error setting include_year flag: %v", err)
 	}
@@ -321,7 +320,8 @@ func initialChecks() {
 	}
 }
 
-func validateWatchedNamespaces() {
+// mustValidateWatchedNamespaces calls internally os.Exit if it can't validate namespaces.
+func mustValidateWatchedNamespaces() {
 	if *watchNamespace != "" && *watchNamespaceLabel != "" {
 		glog.Fatal("watch-namespace and -watch-namespace-label are mutually exclusive")
 	}
@@ -357,8 +357,9 @@ func validateWatchedNamespaces() {
 	}
 }
 
-// validationChecks checks the values for various flags
-func validationChecks() {
+// mustValidateFlags checks the values for various flags
+// and calls os.Exit if any of the flags is invalid.
+func mustValidateFlags() {
 	healthStatusURIValidationError := validateLocation(*healthStatusURI)
 	if healthStatusURIValidationError != nil {
 		glog.Fatalf("Invalid value for health-status-uri: %v", healthStatusURIValidationError)
@@ -439,8 +440,6 @@ func validatePort(port int) error {
 	}
 	return nil
 }
-
-const appProtectLogLevelDefault = "fatal"
 
 // validateAppProtectLogLevel makes sure a given logLevel is one of the allowed values
 func validateAppProtectLogLevel(logLevel string) error {

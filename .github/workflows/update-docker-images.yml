@@ -33,7 +33,7 @@ jobs:
       date: ${{ steps.kic.outputs.date }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
 
@@ -105,23 +105,8 @@ jobs:
             image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic/nginx-plus-ingress
             target_image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic/nginx-plus-ingress
             platforms: "linux/arm64, linux/amd64"
-          - tag: ${{ needs.variables.outputs.tag }}-alpine-fips
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-alpine-fips"
-            image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic/nginx-plus-ingress
-            target_image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic/nginx-plus-ingress
-            platforms: "linux/arm64, linux/amd64"
           - tag: ${{ needs.variables.outputs.tag }}-mktpl
             target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-mktpl"
-            image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic/nginx-plus-ingress
-            target_image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic/nginx-plus-ingress
-            platforms: "linux/arm64, linux/amd64"
-          - tag: ${{ needs.variables.outputs.tag }}-alpine-mktpl
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-alpine-mktpl"
-            image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic/nginx-plus-ingress
-            target_image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic/nginx-plus-ingress
-            platforms: "linux/arm64, linux/amd64"
-          - tag: ${{ needs.variables.outputs.tag }}-alpine-mktpl-fips
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-alpine-mktpl-fips"
             image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic/nginx-plus-ingress
             target_image: gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic/nginx-plus-ingress
             platforms: "linux/arm64, linux/amd64"
@@ -165,15 +150,15 @@ jobs:
             image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-nap/nginx-plus-ingress"
             target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-nap/nginx-plus-ingress"
             platforms: "linux/amd64"
-          - tag: "${{ needs.variables.outputs.tag }}-ubi-mktpl"
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi-mktpl"
-            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-nap/nginx-plus-ingress"
-            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-nap/nginx-plus-ingress"
+          - tag: "${{ needs.variables.outputs.tag }}"
+            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}"
+            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-nap-v5/nginx-plus-ingress"
+            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-nap-v5/nginx-plus-ingress"
             platforms: "linux/amd64"
-          - tag: "${{ needs.variables.outputs.tag }}-alpine-fips"
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-alpine-fips"
-            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-nap/nginx-plus-ingress"
-            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-nap/nginx-plus-ingress"
+          - tag: "${{ needs.variables.outputs.tag }}-ubi"
+            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi"
+            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-nap-v5/nginx-plus-ingress"
+            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-nap-v5/nginx-plus-ingress"
             platforms: "linux/amd64"
           - tag: "${{ needs.variables.outputs.tag }}"
             target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}"
@@ -182,11 +167,6 @@ jobs:
             platforms: "linux/amd64"
           - tag: "${{ needs.variables.outputs.tag }}-ubi"
             target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi"
-            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-dos/nginx-plus-ingress"
-            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-dos/nginx-plus-ingress"
-            platforms: "linux/amd64"
-          - tag: "${{ needs.variables.outputs.tag }}-ubi-mktpl"
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi-mktpl"
             image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-dos/nginx-plus-ingress"
             target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-dos/nginx-plus-ingress"
             platforms: "linux/amd64"
@@ -202,11 +182,6 @@ jobs:
             platforms: "linux/amd64"
           - tag: "${{ needs.variables.outputs.tag }}-ubi"
             target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi"
-            image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-dos-nap/nginx-plus-ingress"
-            target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-dos-nap/nginx-plus-ingress"
-            platforms: "linux/amd64"
-          - tag: "${{ needs.variables.outputs.tag }}-ubi-mktpl"
-            target_tag: "${{ needs.variables.outputs.tag }}-${{ needs.variables.outputs.date }}-ubi-mktpl"
             image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/release/nginx-ic-dos-nap/nginx-plus-ingress"
             target_image: "gcr.io/f5-gcs-7899-ptg-ingrss-ctlr/dev/nginx-ic-dos-nap/nginx-plus-ingress"
             platforms: "linux/amd64"
@@ -244,10 +219,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write
     secrets: inherit
 
   release-oss-public:
-    name: Publish Docker OSS ${{ needs.variables.outputs.tag }} to Public Registries
+    name: Publish Docker OSS ${{ matrix.tag }} to Public Registries
     needs: [variables, patch-oss-images]
     strategy:
       fail-fast: false
@@ -270,10 +246,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write
     secrets: inherit
 
   release-plus-nginx-gcr:
-    name: Publish Docker Plus ${{ needs.variables.outputs.tag }} to NGINX & GCR Marketplace registries
+    name: Publish Docker Plus ${{ matrix.tag }} to NGINX & GCR Marketplace registries
     needs: [variables, patch-plus-images, patch-plus-nap-images]
     strategy:
       fail-fast: false
@@ -340,7 +317,7 @@ jobs:
     needs: [variables, release-oss-public]
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Certify UBI OSS images in quay
         uses: ./.github/actions/certify-openshift-image

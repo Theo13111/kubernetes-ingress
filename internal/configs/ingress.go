@@ -190,6 +190,7 @@ func generateNginxCfg(p NginxCfgParams) (version1.IngressNginxConfig, Warnings) 
 			server.AppProtectDosMonitorProtocol = p.dosResource.AppProtectDosMonitorProtocol
 			server.AppProtectDosMonitorTimeout = p.dosResource.AppProtectDosMonitorTimeout
 			server.AppProtectDosName = p.dosResource.AppProtectDosName
+			server.AppProtectDosAllowListPath = p.dosResource.AppProtectDosAllowListPath
 			server.AppProtectDosAccessLogDst = p.dosResource.AppProtectDosAccessLogDst
 			server.AppProtectDosPolicyFile = p.dosResource.AppProtectDosPolicyFile
 			server.AppProtectDosLogConfFile = p.dosResource.AppProtectDosLogConfFile
@@ -640,15 +641,16 @@ func generateNginxCfgForMergeableIngresses(p NginxCfgParams) (version1.IngressNg
 	isMinion := false
 
 	masterNginxCfg, warnings := generateNginxCfg(NginxCfgParams{
-		staticParams:         p.staticParams,
-		ingEx:                p.mergeableIngs.Master,
-		apResources:          p.apResources,
-		dosResource:          p.dosResource,
-		isMinion:             isMinion,
-		isPlus:               p.isPlus,
-		baseCfgParams:        p.baseCfgParams,
-		isResolverConfigured: p.isResolverConfigured,
-		isWildcardEnabled:    p.isWildcardEnabled,
+		staticParams:              p.staticParams,
+		ingEx:                     p.mergeableIngs.Master,
+		apResources:               p.apResources,
+		dosResource:               p.dosResource,
+		isMinion:                  isMinion,
+		isPlus:                    p.isPlus,
+		baseCfgParams:             p.baseCfgParams,
+		isResolverConfigured:      p.isResolverConfigured,
+		isWildcardEnabled:         p.isWildcardEnabled,
+		ingressControllerReplicas: p.ingressControllerReplicas,
 	})
 
 	// because p.mergeableIngs.Master.Ingress is a deepcopy of the original master
@@ -690,15 +692,16 @@ func generateNginxCfgForMergeableIngresses(p NginxCfgParams) (version1.IngressNg
 		dummyApResources := &AppProtectResources{}
 		dummyDosResource := &appProtectDosResource{}
 		nginxCfg, minionWarnings := generateNginxCfg(NginxCfgParams{
-			staticParams:         p.staticParams,
-			ingEx:                minion,
-			apResources:          dummyApResources,
-			dosResource:          dummyDosResource,
-			isMinion:             isMinion,
-			isPlus:               p.isPlus,
-			baseCfgParams:        p.baseCfgParams,
-			isResolverConfigured: p.isResolverConfigured,
-			isWildcardEnabled:    p.isWildcardEnabled,
+			staticParams:              p.staticParams,
+			ingEx:                     minion,
+			apResources:               dummyApResources,
+			dosResource:               dummyDosResource,
+			isMinion:                  isMinion,
+			isPlus:                    p.isPlus,
+			baseCfgParams:             p.baseCfgParams,
+			isResolverConfigured:      p.isResolverConfigured,
+			isWildcardEnabled:         p.isWildcardEnabled,
+			ingressControllerReplicas: p.ingressControllerReplicas,
 		})
 		warnings.Add(minionWarnings)
 

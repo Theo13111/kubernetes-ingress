@@ -38,10 +38,6 @@ type ExporterCfg struct {
 func NewExporter(cfg ExporterCfg) (Exporter, error) {
 	providerOptions := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(cfg.Endpoint),
-		// This header option will be removed when https://github.com/nginxinc/telemetry-exporter/issues/41 is resolved.
-		otlptracegrpc.WithHeaders(map[string]string{
-			"X-F5-OTEL": "GRPC",
-		}),
 	}
 
 	exporter, err := tel.NewExporter(
@@ -75,8 +71,14 @@ type NICResourceCounts struct {
 	Replicas int64
 	// Secrets is the number of Secret resources managed by the Ingress Controller.
 	Secrets int64
-	// Services is the number of services referenced by NGINX Ingress Controller in the cluster
-	Services int64
+	// ClusterIPServices is the number of ClusterIP services managed by NGINX Ingress Controller.
+	ClusterIPServices int64
+	// NodePortServices is the number of NodePort services managed by NGINX Ingress Controller.
+	NodePortServices int64
+	// LoadBalancerServices is the number of LoadBalancer services managed by NGINX Ingress Controller.
+	LoadBalancerServices int64
+	// ExternalNameServices is the number of ExternalName services managed by NGINX Ingress Controller.
+	ExternalNameServices int64
 	// RegularIngressCount is the number of Regular Ingress resources managed by NGINX Ingress Controller.
 	RegularIngressCount int64
 	// MasterIngressCount is the number of Regular Ingress resources managed by NGINX Ingress Controller.
@@ -89,6 +91,8 @@ type NICResourceCounts struct {
 	AccessControlPolicies int64
 	// RateLimitPolicies is the number of RateLimit policies managed by NGINX Ingress Controller
 	RateLimitPolicies int64
+	// APIKeyPolicies is the number of APIKey policies managed by NGINX Ingress Controller
+	APIKeyPolicies int64
 	// JWTAuthPolicies is the number of JWTAuth policies managed by NGINX Ingress Controller
 	JWTAuthPolicies int64
 	// BasicAuthPolicies is the number of BasicAuth policies managed by NGINX Ingress Controller
@@ -111,4 +115,6 @@ type NICResourceCounts struct {
 	IsPlus bool
 	// InstallationFlags is the list of command line arguments configured for NGINX Ingress Controller
 	InstallationFlags []string
+	// BuildOS represents the base operating system image
+	BuildOS string
 }

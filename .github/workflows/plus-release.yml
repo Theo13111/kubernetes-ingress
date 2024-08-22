@@ -24,9 +24,6 @@ on:
       target_tag:
         required: true
         type: string
-      short_target_tag:
-        type: string
-        default: ''
       dry_run:
         type: boolean
         default: false
@@ -53,9 +50,6 @@ on:
       target_tag:
         required: true
         type: string
-      short_target_tag:
-        type: string
-        default: ''
       dry_run:
         type: boolean
         default: false
@@ -77,25 +71,22 @@ jobs:
     if: ${{ inputs.gcr_release_registry }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Authenticate to Google Cloud
         id: gcr-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
           service_account: ${{ secrets.GCR_SERVICE_ACCOUNT }}
 
       - name: Login to GCR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
           password: ${{ steps.gcr-auth.outputs.access_token }}
-
-      - name: Install latest skopeo
-        uses: ./.github/actions/install-skopeo
 
       - name: Publish Plus images
         run: |
@@ -104,9 +95,6 @@ jobs:
           export TARGET_TAG=${{ inputs.target_tag }}
           if ${{ inputs.dry_run }}; then
             export DRY_RUN=true
-          fi
-          if [ "${{ inputs.short_target_tag }}" != "" ]; then
-            export ADDITIONAL_TAG=${{ inputs.short_target_tag }}
           fi
           .github/scripts/copy-images.sh
 
@@ -119,18 +107,18 @@ jobs:
     if: ${{ inputs.nginx_registry }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Authenticate to Google Cloud
         id: gcr-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
           service_account: ${{ secrets.GCR_SERVICE_ACCOUNT }}
 
       - name: Login to GCR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -145,14 +133,11 @@ jobs:
             core.setOutput('id_token', id_token)
 
       - name: Login to NGINX Registry
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: docker-mgmt.nginx.com
           username: ${{ steps.idtoken.outputs.id_token }}
           password: ${{ github.actor }}
-
-      - name: Install latest skopeo
-        uses: ./.github/actions/install-skopeo
 
       - name: Publish images
         run: |
@@ -161,9 +146,6 @@ jobs:
           export TARGET_TAG=${{ inputs.target_tag }}
           if ${{ inputs.dry_run }}; then
             export DRY_RUN=true
-          fi
-          if [ "${{ inputs.short_target_tag }}" != "" ]; then
-            export ADDITIONAL_TAG=${{ inputs.short_target_tag }}
           fi
           .github/scripts/copy-images.sh
 
@@ -176,11 +158,11 @@ jobs:
     if: ${{ inputs.gcr_mktpl_registry }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Authenticate to Google Cloud
         id: gcr-priv-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
@@ -188,14 +170,11 @@ jobs:
 
       - name: Authenticate to Google Cloud Marketplace
         id: gcr-mktpl-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY_MKTPL }}
           service_account: ${{ secrets.GCR_SERVICE_ACCOUNT_MKTPL }}
-
-      - name: Install latest skopeo
-        uses: ./.github/actions/install-skopeo
 
       - name: Publish Plus images
         run: |
@@ -206,9 +185,6 @@ jobs:
           export TARGET_OPTS="--dest-registry-token ${{ steps.gcr-mktpl-auth.outputs.access_token }}"
           if ${{ inputs.dry_run }}; then
             export DRY_RUN=true
-          fi
-          if [ "${{ inputs.short_target_tag }}" != "" ]; then
-            export ADDITIONAL_TAG=${{ inputs.short_target_tag }}
           fi
           .github/scripts/copy-images.sh
 
@@ -221,18 +197,18 @@ jobs:
     if: ${{ inputs.ecr_mktpl_registry }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Authenticate to Google Cloud
         id: gcr-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
           service_account: ${{ secrets.GCR_SERVICE_ACCOUNT }}
 
       - name: Login to GCR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -245,12 +221,9 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_MARKETPLACE }}
 
       - name: Login to ECR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: 709825985650.dkr.ecr.us-east-1.amazonaws.com
-
-      - name: Install latest skopeo
-        uses: ./.github/actions/install-skopeo
 
       - name: Publish images
         run: |
@@ -271,32 +244,29 @@ jobs:
     if: ${{ inputs.az_mktpl_registry }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Authenticate to Google Cloud
         id: gcr-auth
-        uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
           service_account: ${{ secrets.GCR_SERVICE_ACCOUNT }}
 
       - name: Login to GCR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
           password: ${{ steps.gcr-auth.outputs.access_token }}
 
       - name: Login to ACR
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: nginxmktpl.azurecr.io
           username: ${{ secrets.AZ_MKTPL_ID }}
           password: ${{ secrets.AZ_MKTPL_SECRET }}
-
-      - name: Install latest skopeo
-        uses: ./.github/actions/install-skopeo
 
       - name: Publish images
         run: |

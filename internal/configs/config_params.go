@@ -24,7 +24,7 @@ type ConfigParams struct {
 	Keepalive                              int
 	LBMethod                               string
 	LocationSnippets                       []string
-	MainAccessLogOff                       bool
+	MainAccessLog                          string
 	MainErrorLogLevel                      string
 	MainHTTPSnippets                       []string
 	MainKeepaliveRequests                  int64
@@ -99,9 +99,10 @@ type ConfigParams struct {
 	MainServerSSLPreferServerCiphers bool
 	MainServerSSLProtocols           string
 
-	IngressTemplate       *string
-	VirtualServerTemplate *string
-	MainTemplate          *string
+	IngressTemplate         *string
+	VirtualServerTemplate   *string
+	MainTemplate            *string
+	TransportServerTemplate *string
 
 	JWTKey      string
 	JWTLoginURL string
@@ -145,7 +146,9 @@ type StaticConfigParams struct {
 	NginxServiceMesh               bool
 	EnableInternalRoutes           bool
 	MainAppProtectLoadModule       bool
+	MainAppProtectV5LoadModule     bool
 	MainAppProtectDosLoadModule    bool
+	MainAppProtectV5EnforcerAddr   string
 	InternalRouteServerName        string
 	EnableLatencyMetrics           bool
 	EnableOIDC                     bool
@@ -155,6 +158,7 @@ type StaticConfigParams struct {
 	StaticSSLPath                  string
 	DynamicWeightChangesReload     bool
 	NginxVersion                   nginx.Version
+	AppProtectBundlePath           string
 }
 
 // GlobalConfigParams holds global configuration parameters. For now, it only holds listeners.
@@ -184,6 +188,7 @@ func NewDefaultConfigParams(isPlus bool) *ConfigParams {
 		ProxySendTimeout:              "60s",
 		ClientMaxBodySize:             "1m",
 		SSLRedirect:                   true,
+		MainAccessLog:                 "/dev/stdout main",
 		MainServerNamesHashBucketSize: "256",
 		MainServerNamesHashMaxSize:    "1024",
 		MainMapHashBucketSize:         "256",

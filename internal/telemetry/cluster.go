@@ -162,13 +162,14 @@ func (c *Collector) IngressClassCount(ctx context.Context) (int, error) {
 // PolicyCount returns the count in each Policy
 func (c *Collector) PolicyCount() map[string]int {
 	policyCounters := make(map[string]int)
-
+	if !c.Config.CustomResourcesEnabled {
+		return policyCounters
+	}
 	if c.Config.Policies == nil {
 		return policyCounters
 	}
-
 	policies := c.Config.Policies()
-	if policies == nil {
+	if len(policies) == 0 {
 		return policyCounters
 	}
 
@@ -192,6 +193,8 @@ func (c *Collector) PolicyCount() map[string]int {
 			policyCounters["OIDC"]++
 		case spec.WAF != nil:
 			policyCounters["WAF"]++
+		case spec.APIKey != nil:
+			policyCounters["APIKey"]++
 		}
 	}
 	return policyCounters
@@ -210,6 +213,27 @@ func (c *Collector) IsPlusEnabled() bool {
 // InstallationFlags returns the list of all set flags
 func (c *Collector) InstallationFlags() []string {
 	return c.Config.InstallationFlags
+}
+
+// ServiceCounts returns a map of service names and their counts in the Kubernetes cluster.
+func (c *Collector) ServiceCounts() (map[string]int, error) {
+	serviceCounts := make(map[string]int)
+
+	services, err := c.Config.K8sClientReader.CoreV1().Services("").List(context.Background(), metaV1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range services.Items {
+		serviceCounts[string(service.Spec.Type)]++
+	}
+
+	return serviceCounts, nil
+}
+
+// BuildOS returns a string which is the base operating system image tha NIC is running in.
+func (c *Collector) BuildOS() string {
+	return c.Config.BuildOS
 }
 
 // lookupPlatform takes a string representing a K8s PlatformID

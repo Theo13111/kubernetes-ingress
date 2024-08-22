@@ -577,6 +577,7 @@ type PolicySpec struct {
 	EgressMTLS    *EgressMTLS    `json:"egressMTLS"`
 	OIDC          *OIDC          `json:"oidc"`
 	WAF           *WAF           `json:"waf"`
+	APIKey        *APIKey        `json:"apiKey"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -619,7 +620,6 @@ type JWTAuth struct {
 }
 
 // BasicAuth holds HTTP Basic authentication configuration
-// policy status: preview
 type BasicAuth struct {
 	Realm  string `json:"realm"`
 	Secret string `json:"secret"`
@@ -648,16 +648,18 @@ type EgressMTLS struct {
 
 // OIDC defines an Open ID Connect policy.
 type OIDC struct {
-	AuthEndpoint      string   `json:"authEndpoint"`
-	TokenEndpoint     string   `json:"tokenEndpoint"`
-	JWKSURI           string   `json:"jwksURI"`
-	ClientID          string   `json:"clientID"`
-	ClientSecret      string   `json:"clientSecret"`
-	Scope             string   `json:"scope"`
-	RedirectURI       string   `json:"redirectURI"`
-	ZoneSyncLeeway    *int     `json:"zoneSyncLeeway"`
-	AuthExtraArgs     []string `json:"authExtraArgs"`
-	AccessTokenEnable bool     `json:"accessTokenEnable"`
+	AuthEndpoint          string   `json:"authEndpoint"`
+	TokenEndpoint         string   `json:"tokenEndpoint"`
+	JWKSURI               string   `json:"jwksURI"`
+	ClientID              string   `json:"clientID"`
+	ClientSecret          string   `json:"clientSecret"`
+	Scope                 string   `json:"scope"`
+	RedirectURI           string   `json:"redirectURI"`
+	EndSessionEndpoint    string   `json:"endSessionEndpoint"`
+	PostLogoutRedirectURI string   `json:"postLogoutRedirectURI"`
+	ZoneSyncLeeway        *int     `json:"zoneSyncLeeway"`
+	AuthExtraArgs         []string `json:"authExtraArgs"`
+	AccessTokenEnable     bool     `json:"accessTokenEnable"`
 }
 
 // WAF defines an WAF policy.
@@ -675,4 +677,16 @@ type SecurityLog struct {
 	ApLogConf   string `json:"apLogConf"`
 	ApLogBundle string `json:"apLogBundle"`
 	LogDest     string `json:"logDest"`
+}
+
+// APIKey defines an API Key policy.
+type APIKey struct {
+	SuppliedIn   *SuppliedIn `json:"suppliedIn"`
+	ClientSecret string      `json:"clientSecret"`
+}
+
+// SuppliedIn defines the locations API Key should be supplied in.
+type SuppliedIn struct {
+	Header []string `json:"header"`
+	Query  []string `json:"query"`
 }
