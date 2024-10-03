@@ -208,10 +208,10 @@
                     },
                     "tag": {
                       "type": "string",
-                      "default": "5.2.0",
+                      "default": "5.3.0",
                       "title": "The tag of the  App Protect WAF v5 Enforcer image",
                       "examples": [
-                        "5.2.0"
+                        "5.3.0"
                       ]
                     },
                     "digest": {
@@ -248,7 +248,7 @@
                   "examples": [
                     {
                       "repository": "private-registry.nginx.com/nap/waf-enforcer",
-                      "tag": "5.2.0",
+                      "tag": "5.3.0",
                       "pullPolicy": "IfNotPresent"
                     }
                   ]
@@ -282,10 +282,10 @@
                     },
                     "tag": {
                       "type": "string",
-                      "default": "5.2.0",
+                      "default": "5.3.0",
                       "title": "The tag of the  App Protect WAF v5 Config Manager image",
                       "examples": [
-                        "5.2.0"
+                        "5.3.0"
                       ]
                     },
                     "digest": {
@@ -322,7 +322,7 @@
                   "examples": [
                     {
                       "repository": "private-registry.nginx.com/nap/waf-config-mgr",
-                      "tag": "5.2.0",
+                      "tag": "5.3.0",
                       "pullPolicy": "IfNotPresent"
                     }
                   ]
@@ -486,17 +486,32 @@
           ]
         },
         "logLevel": {
-          "type": "integer",
-          "default": 1,
+          "type": "string",
+          "default": "info",
           "title": "The logLevel of the Ingress Controller",
           "enum": [
-            0,
-            1,
-            2,
-            3
+            "trace",
+            "debug",
+            "info",
+            "warning",
+            "error",
+            "fatal"
           ],
           "examples": [
-            1
+            "info"
+          ]
+        },
+        "logFormat": {
+          "type": "string",
+          "default": "glog",
+          "title": "The logFormat of the Ingress Controller",
+          "enum": [
+            "glog",
+            "json",
+            "text"
+          ],
+          "examples": [
+            "json"
           ]
         },
         "customPorts": {
@@ -540,10 +555,10 @@
             },
             "tag": {
               "type": "string",
-              "default": "3.6.2",
+              "default": "3.7.0",
               "title": "The tag of the Ingress Controller image",
               "examples": [
-                "3.6.2"
+                "3.7.0"
               ]
             },
             "digest": {
@@ -580,7 +595,7 @@
           "examples": [
             {
               "repository": "nginx/nginx-ingress",
-              "tag": "3.6.2",
+              "tag": "3.7.0",
               "pullPolicy": "IfNotPresent"
             }
           ]
@@ -995,7 +1010,7 @@
                           "dns-tcp"
                         ]
                       },
-                      "ipv4ip": {
+                      "ipv4": {
                         "type": "string",
                         "default": "",
                         "title": "The ipv4 ip",
@@ -1003,7 +1018,7 @@
                           "127.0.0.1"
                         ]
                       },
-                      "ipv6ip": {
+                      "ipv6": {
                         "type": "string",
                         "default": "",
                         "title": "The ipv6 ip",
@@ -1674,11 +1689,11 @@
           "hostNetwork": false,
           "nginxDebug": false,
           "shareProcessNamespace": false,
-          "logLevel": 1,
+          "logLevel": "info",
           "customPorts": [],
           "image": {
             "repository": "nginx/nginx-ingress",
-            "tag": "3.6.2",
+            "tag": "3.7.0",
             "digest": "",
             "pullPolicy": "IfNotPresent"
           },
@@ -2214,11 +2229,11 @@
         },
         "hostNetwork": false,
         "nginxDebug": false,
-        "logLevel": 1,
+        "logLevel": "info",
         "customPorts": [],
         "image": {
           "repository": "nginx/nginx-ingress",
-          "tag": "3.6.2",
+          "tag": "3.7.0",
           "digest": "",
           "pullPolicy": "IfNotPresent"
         },
