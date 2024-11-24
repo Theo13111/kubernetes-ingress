@@ -841,9 +841,10 @@ func (lbc *LoadBalancerController) createExtendedResources(resources []Resource)
 func (lbc *LoadBalancerController) updateAllConfigs() {
 	ctx := nl.ContextWithLogger(context.Background(), lbc.Logger)
 	cfgParams := configs.NewDefaultConfigParams(ctx, lbc.isNginxPlus)
+	var isNGINXConfigValid bool
 
 	if lbc.configMap != nil {
-		cfgParams = configs.ParseConfigMap(ctx, lbc.configMap, lbc.isNginxPlus, lbc.appProtectEnabled, lbc.appProtectDosEnabled, lbc.configuration.isTLSPassthroughEnabled)
+		cfgParams, isNGINXConfigValid = configs.ParseConfigMap(ctx, lbc.configMap, lbc.isNginxPlus, lbc.appProtectEnabled, lbc.appProtectDosEnabled, lbc.configuration.isTLSPassthroughEnabled, lbc.recorder)
 	}
 
 	resources := lbc.configuration.GetResources()
@@ -869,8 +870,11 @@ func (lbc *LoadBalancerController) updateAllConfigs() {
 	}
 
 	if lbc.configMap != nil {
-		key := getResourceKey(&lbc.configMap.ObjectMeta)
-		lbc.recorder.Eventf(lbc.configMap, eventType, eventTitle, "Configuration from %v was updated %s", key, eventWarningMessage)
+		if isNGINXConfigValid {
+			lbc.recorder.Event(lbc.configMap, api_v1.EventTypeNormal, "Updated", fmt.Sprintf("ConfigMap %s/%s updated without error", lbc.configMap.GetNamespace(), lbc.configMap.GetName()))
+		} else {
+			lbc.recorder.Event(lbc.configMap, api_v1.EventTypeWarning, "UpdatedWithError", fmt.Sprintf("ConfigMap %s/%s updated with errors. Ignoring invalid values", lbc.configMap.GetNamespace(), lbc.configMap.GetName()))
+		}
 	}
 
 	gc := lbc.configuration.GetGlobalConfiguration()
@@ -1652,7 +1656,7 @@ func (lbc *LoadBalancerController) reportCustomResourceStatusEnabled() bool {
 func (lbc *LoadBalancerController) syncSecret(task task) {
 	key := task.Key
 	var obj interface{}
-	var secrExists bool
+	var secretWatched bool
 	var err error
 
 	namespace, name, err := ParseNamespaceName(key)
@@ -1660,7 +1664,7 @@ func (lbc *LoadBalancerController) syncSecret(task task) {
 		nl.Warnf(lbc.Logger, "Secret key %v is invalid: %v", key, err)
 		return
 	}
-	obj, secrExists, err = lbc.getNamespacedInformer(namespace).secretLister.GetByKey(key)
+	obj, secretWatched, err = lbc.getNamespacedInformer(namespace).secretLister.GetByKey(key)
 	if err != nil {
 		lbc.syncQueue.Requeue(task, err)
 		return
@@ -1679,7 +1683,7 @@ func (lbc *LoadBalancerController) syncSecret(task task) {
 
 	nl.Debugf(lbc.Logger, "Found %v Resources with Secret %v", len(resources), key)
 
-	if !secrExists {
+	if !secretWatched {
 		lbc.secretStore.DeleteSecret(key)
 
 		nl.Debugf(lbc.Logger, "Deleting Secret: %v", key)
@@ -1774,15 +1778,14 @@ func (lbc *LoadBalancerController) validationTLSSpecialSecret(secret *api_v1.Sec
 func (lbc *LoadBalancerController) handleSpecialSecretUpdate(secret *api_v1.Secret) {
 	var specialTLSSecretsToUpdate []string
 	secretNsName := secret.Namespace + "/" + secret.Name
-	switch secretNsName {
-	case lbc.specialSecrets.defaultServerSecret:
-		lbc.validationTLSSpecialSecret(secret, configs.DefaultServerSecretName, &specialTLSSecretsToUpdate)
-	case lbc.specialSecrets.wildcardTLSSecret:
-		lbc.validationTLSSpecialSecret(secret, configs.WildcardSecretName, &specialTLSSecretsToUpdate)
-	default:
-		nl.Warnf(lbc.Logger, "special secret not found")
-		return
+
+	if secretNsName == lbc.specialSecrets.defaultServerSecret {
+		lbc.validationTLSSpecialSecret(secret, configs.DefaultServerSecretFileName, &specialTLSSecretsToUpdate)
 	}
+	if secretNsName == lbc.specialSecrets.wildcardTLSSecret {
+		lbc.validationTLSSpecialSecret(secret, configs.WildcardSecretFileName, &specialTLSSecretsToUpdate)
+	}
+
 	err := lbc.configurator.AddOrUpdateSpecialTLSSecrets(secret, specialTLSSecretsToUpdate)
 	if err != nil {
 		nl.Errorf(lbc.Logger, "Error when updating the special Secret %v: %v", secretNsName, err)
