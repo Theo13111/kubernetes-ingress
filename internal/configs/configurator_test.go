@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"reflect"
@@ -13,12 +14,12 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/nginxinc/kubernetes-ingress/internal/configs/version1"
-	"github.com/nginxinc/kubernetes-ingress/internal/configs/version2"
-	"github.com/nginxinc/kubernetes-ingress/internal/k8s/secrets"
-	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
-	conf_v1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configuration/v1"
-	"github.com/nginxinc/kubernetes-ingress/pkg/apis/dos/v1beta1"
+	"github.com/nginx/kubernetes-ingress/internal/configs/version1"
+	"github.com/nginx/kubernetes-ingress/internal/configs/version2"
+	"github.com/nginx/kubernetes-ingress/internal/k8s/secrets"
+	"github.com/nginx/kubernetes-ingress/internal/nginx"
+	conf_v1 "github.com/nginx/kubernetes-ingress/pkg/apis/configuration/v1"
+	"github.com/nginx/kubernetes-ingress/pkg/apis/dos/v1beta1"
 	api_v1 "k8s.io/api/core/v1"
 )
 
@@ -51,6 +52,7 @@ func createTestConfigurator(t *testing.T) *Configurator {
 		NginxManager:            manager,
 		StaticCfgParams:         createTestStaticConfigParams(),
 		Config:                  NewDefaultConfigParams(context.Background(), false),
+		MGMTCfgParams:           NewDefaultMGMTConfigParams(context.Background()),
 		TemplateExecutor:        templateExecutor,
 		TemplateExecutorV2:      templateExecutorV2,
 		LatencyCollector:        nil,
@@ -99,9 +101,9 @@ func TestConfiguratorUpdatesConfigWithNilCustomMainTemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		MainTemplate: nil,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{MainTemplate: nil}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,9 +119,9 @@ func TestConfiguratorUpdatesConfigWithCustomMainTemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		MainTemplate: &customTestMainTemplate,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{MainTemplate: &customTestMainTemplate}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,9 +141,9 @@ func TestConfiguratorUpdatesConfigWithNilCustomIngressTemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		IngressTemplate: nil,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{IngressTemplate: nil}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,9 +159,9 @@ func TestConfiguratorUpdatesConfigWithCustomIngressTemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		IngressTemplate: &customTestIngressTemplate,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{IngressTemplate: &customTestIngressTemplate}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,9 +181,9 @@ func TestConfigratorUpdatesConfigWithCustomVStemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		VirtualServerTemplate: &customTestVStemplate,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{VirtualServerTemplate: &customTestVStemplate}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,9 +203,9 @@ func TestConfiguratorUpdatesConfigWithNilCustomVSemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		VirtualServerTemplate: nil,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{VirtualServerTemplate: nil}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,9 +221,11 @@ func TestConfigratorUpdatesConfigWithCustomTStemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	cnf.CfgParams = &ConfigParams{
 		TransportServerTemplate: &customTestTStemplate,
-	}, ExtendedResources{})
+	}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -241,9 +245,9 @@ func TestConfiguratorUpdatesConfigWithNilCustomTStemplate(t *testing.T) {
 	t.Parallel()
 
 	cnf := createTestConfigurator(t)
-	warnings, err := cnf.UpdateConfig(&ConfigParams{
-		TransportServerTemplate: nil,
-	}, ExtendedResources{})
+	cnf.CfgParams = &ConfigParams{TransportServerTemplate: nil}
+	cnf.MgmtCfgParams = &MGMTConfigParams{}
+	warnings, err := cnf.UpdateConfig(ExtendedResources{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,6 +256,31 @@ func TestConfiguratorUpdatesConfigWithNilCustomTStemplate(t *testing.T) {
 	}
 	if cnf.CfgParams.TransportServerTemplate != nil {
 		t.Errorf("Want nil TransportServer template, got %+v\n", cnf.CfgParams.TransportServerTemplate)
+	}
+}
+
+func TestAddOrUpdateLicenseSecret(t *testing.T) {
+	t.Parallel()
+	cnf := createTestConfigurator(t)
+	cnf.MgmtCfgParams.Secrets.License = "default/license-token"
+	license := api_v1.Secret{
+		TypeMeta: meta_v1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name:      "license-token",
+			Namespace: "default",
+		},
+		Data: map[string][]byte{
+			"license.jwt": []byte(base64.StdEncoding.EncodeToString([]byte("license-token"))),
+		},
+		Type: "nginx.com/license",
+	}
+
+	err := cnf.AddOrUpdateLicenseSecret(&license)
+	if err != nil {
+		t.Errorf("AddOrUpdateLicenseSecret returned:  \n%v, but expected: \n%v", err, nil)
 	}
 }
 
@@ -1935,7 +1964,7 @@ func createTransportServerExWithHostNoTLSPassthrough() TransportServerEx {
 var (
 	// customTestMainTemplate represents a custom Main template passed via ConfigMap
 	customTestMainTemplate = `# TEST NEW MAIN TEMPLATE
-{{- /*gotype: github.com/nginxinc/kubernetes-ingress/internal/configs/version1.MainConfig*/ -}}
+{{- /*gotype: github.com/nginx/kubernetes-ingress/internal/configs/version1.MainConfig*/ -}}
 worker_processes  {{.WorkerProcesses}};
 {{- if .WorkerRlimitNofile}}
 worker_rlimit_nofile {{.WorkerRlimitNofile}};{{end}}
@@ -2304,7 +2333,7 @@ mgmt {
 
 	// customTestIngressTemplate represents a custom Ingress template passed via ConfigMap
 	customTestIngressTemplate = `# TEST NEW CUSTOM INGRESS TEMPLATE
-{{- /*gotype: github.com/nginxinc/kubernetes-ingress/internal/configs/version1.IngressNginxConfig*/ -}}
+{{- /*gotype: github.com/nginx/kubernetes-ingress/internal/configs/version1.IngressNginxConfig*/ -}}
 # configuration for {{.Ingress.Namespace}}/{{.Ingress.Name}}
 {{- range $upstream := .Upstreams}}
 upstream {{$upstream.Name}} {
@@ -2579,7 +2608,7 @@ server {
 
 	// customTestVStemplate represents the custom VirtualServer template passed via ConfigMap
 	customTestVStemplate = `# TEST CUSTOM VIRTUALSERVER TEMPLATE
-{{- /*gotype: github.com/nginxinc/kubernetes-ingress/internal/configs/version2.VirtualServerConfig*/ -}}
+{{- /*gotype: github.com/nginx/kubernetes-ingress/internal/configs/version2.VirtualServerConfig*/ -}}
 {{ range $u := .Upstreams }}
 upstream {{ $u.Name }} {
     zone {{ $u.Name }} {{ if ne $u.UpstreamZoneSize "0" }}{{ $u.UpstreamZoneSize }}{{ else }}512k{{ end }};
@@ -2609,7 +2638,9 @@ upstream {{ $u.Name }} {
         {{- end }}
     {{- end }}
 
-    {{ if $u.NTLM }}ntlm;{{ end }}
+    {{- if $u.NTLM }}
+	ntlm;
+	{{- end }}
 }
 {{ end }}
 
@@ -2658,7 +2689,9 @@ proxy_cache_path /var/cache/nginx/jwks_uri_{{$s.VSName}} levels=1 keys_zone=jwks
 {{- end }}
 
 server {
-    {{- if $s.Gunzip }}gunzip on;{{end}}
+    {{- if $s.Gunzip }}
+	gunzip on;
+	{{- end }}
     {{ makeHTTPListener $s | printf }}
 
     server_name {{ $s.ServerName }};
@@ -3298,7 +3331,7 @@ server {
 
 	// customTestTStemplate represents a custom TransportServer template passed via ConfigMap
 	customTestTStemplate = `# TEST CUSTOM TRANSPORTSERVER TEMPLATE
-{{- /*gotype: github.com/nginxinc/kubernetes-ingress/internal/configs/version2.TransportServerConfig*/ -}}
+{{- /*gotype: github.com/nginx/kubernetes-ingress/internal/configs/version2.TransportServerConfig*/ -}}
 {{- range $u := .Upstreams }}
 upstream {{ $u.Name }} {
     zone {{ $u.Name }} 512k;

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/nginxinc/kubernetes-ingress/internal/configs/commonhelpers"
+	"github.com/nginx/kubernetes-ingress/internal/configs/commonhelpers"
 )
 
 func split(s string, delim string) []string {
@@ -182,7 +182,7 @@ func generateProxySetHeaders(loc *Location, ingressAnnotations map[string]string
 	return combinedHeaders, nil
 }
 
-func makeResolver(resolverAddresses []string, resolverValid string, resolverIPV6 bool) string {
+func makeResolver(resolverAddresses []string, resolverValid string, resolverIPV6 *bool) string {
 	var builder strings.Builder
 	if len(resolverAddresses) > 0 {
 		builder.WriteString("resolver")
@@ -194,7 +194,7 @@ func makeResolver(resolverAddresses []string, resolverValid string, resolverIPV6
 			builder.WriteString(" valid=")
 			builder.WriteString(resolverValid)
 		}
-		if !resolverIPV6 {
+		if resolverIPV6 != nil && !*resolverIPV6 {
 			builder.WriteString(" ipv6=off")
 		}
 		builder.WriteString(";")
@@ -213,6 +213,8 @@ var helperFunctions = template.FuncMap{
 	"replaceAll":              strings.ReplaceAll,
 	"makeLocationPath":        makeLocationPath,
 	"makeSecretPath":          commonhelpers.MakeSecretPath,
+	"makeOnOffFromBool":       commonhelpers.MakeOnOffFromBool,
 	"generateProxySetHeaders": generateProxySetHeaders,
+	"boolToPointerBool":       commonhelpers.BoolToPointerBool,
 	"makeResolver":            makeResolver,
 }

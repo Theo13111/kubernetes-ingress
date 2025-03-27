@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	v1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configuration/v1"
+	v1 "github.com/nginx/kubernetes-ingress/pkg/apis/configuration/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -149,6 +149,14 @@ func validateRateLimit(rateLimit *v1.RateLimit, fieldPath *field.Path, isPlus bo
 			allErrs = append(allErrs, field.Invalid(fieldPath.Child("rejectCode"), rateLimit.RejectCode,
 				"must be within the range [400-599]"))
 		}
+	}
+
+	if rateLimit.Condition != nil && rateLimit.Condition.JWT == nil {
+		allErrs = append(allErrs, field.Required(fieldPath.Child("jwt"), "jwt cannot be nil"))
+	}
+
+	if rateLimit.Condition != nil && rateLimit.Condition.JWT != nil && !isPlus {
+		allErrs = append(allErrs, field.Forbidden(fieldPath.Child("condition.jwt"), "is only supported in NGINX Plus"))
 	}
 
 	return allErrs
@@ -569,7 +577,7 @@ func validateRateLimitZoneSize(zoneSize string, fieldPath *field.Path) field.Err
 	return allErrs
 }
 
-var rateLimitKeySpecialVariables = []string{"arg_", "http_", "cookie_"}
+var rateLimitKeySpecialVariables = []string{"arg_", "http_", "cookie_", "jwt_claim_"}
 
 // rateLimitKeyVariables includes NGINX variables allowed to be used in a rateLimit policy key.
 var rateLimitKeyVariables = map[string]bool{

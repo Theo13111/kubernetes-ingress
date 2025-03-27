@@ -1,13 +1,13 @@
 ---
-docs: DOCS-583
-doctypes:
-- ''
 title: Build NGINX Ingress Controller with NGINX App Protect DoS
-toc: true
 weight: 100
+toc: true
+type: how-to
+product: NIC
+docs: DOCS-583
 ---
 
-This document explains how to build an image for NGINX Ingress Controller with NGINX App Protect DoS from source code.
+This document explains how to build an image for F5 NGINX Ingress Controller with NGINX App Protect DoS from source code.
 
 {{<call-out "tip" "Pre-built image alternatives" >}}If you'd rather not build your own NGINX Ingress Controller image, see the [pre-built image options](#pre-built-images) at the end of this guide.{{</call-out>}}
 
@@ -30,14 +30,14 @@ Get your system ready for building and pushing the NGINX Ingress Controller imag
 2. Clone the NGINX Ingress Controller GitHub repository. Replace `<version_number>` with the version of NGINX Ingress Controller you want.
 
     ```shell
-    git clone https://github.com/nginxinc/kubernetes-ingress.git --branch <version_number>
+    git clone https://github.com/nginx/kubernetes-ingress.git --branch <version_number>
     cd kubernetes-ingress
     ```
 
     For instance if you want to clone version v{{< nic-version >}}, the commands to run would be:
 
     ```shell
-    git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v{{< nic-version >}}
+    git clone https://github.com/nginx/kubernetes-ingress.git --branch v{{< nic-version >}}
     cd kubernetes-ingress/deployments
     ```
 
@@ -135,7 +135,7 @@ This single YAML file creates CRDs for the following resources:
 - `DosProtectedResource`
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
 ```
 
 {{%/tab%}}
@@ -218,7 +218,7 @@ To enable the NGINX App Protect DoS Module:
 
 {{< include "installation/manifests/verify-pods-are-running.md" >}}
 
-For more information, see the [Configuration guide]({{< relref "installation/integrations/app-protect-dos/configuration.md" >}}),the [NGINX Ingress Controller with App Protect DoS example for VirtualServer](https://github.com/nginxinc/kubernetes-ingress/tree/v{{< nic-version >}}/examples/custom-resources/app-protect-dos) and the [NGINX Ingress Controller with App Protect DoS example for Ingress](https://github.com/nginxinc/kubernetes-ingress/tree/v{{< nic-version >}}/examples/ingress-resources/app-protect-dos).
+For more information, see the [Configuration guide]({{< relref "installation/integrations/app-protect-dos/configuration.md" >}}),the [NGINX Ingress Controller with App Protect DoS example for VirtualServer](https://github.com/nginx/kubernetes-ingress/tree/v{{< nic-version >}}/examples/custom-resources/app-protect-dos) and the [NGINX Ingress Controller with App Protect DoS example for Ingress](https://github.com/nginx/kubernetes-ingress/tree/v{{< nic-version >}}/examples/ingress-resources/app-protect-dos).
 
 ---
 

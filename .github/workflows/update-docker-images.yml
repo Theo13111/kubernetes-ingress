@@ -26,7 +26,7 @@ permissions:
 jobs:
   variables:
     name: Set variables for workflow
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     outputs:
       tag: ${{ steps.kic.outputs.tag }}
       short_tag: ${{ steps.kic.outputs.short }}
@@ -171,7 +171,7 @@ jobs:
 
   certify-openshift-images:
     name: Certify OpenShift UBI images
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: [variables, release-oss-public]
     steps:
       - name: Checkout Repository
@@ -184,4 +184,5 @@ jobs:
           project_id: ${{ secrets.CERTIFICATION_PROJECT_ID }}
           pyxis_token: ${{ secrets.PYXIS_API_TOKEN }}
           platforms: ""
-        if: ${{ ! inputs.dry_run || false }}
+          preflight_version: 1.11.1
+          submit: ${{ ! inputs.dry_run || true }}

@@ -1,8 +1,10 @@
 ---
-docs: DOCS-602
 title: Installation with Helm
 toc: true
 weight: 100
+type: how-to
+product: NIC
+docs: DOCS-602
 ---
 
 This document explains how to install F5 NGINX Ingress Controller using [Helm](https://helm.sh/).
@@ -14,6 +16,7 @@ This document explains how to install F5 NGINX Ingress Controller using [Helm](h
 - A [Kubernetes Version Supported by NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/technical-specifications/#supported-kubernetes-versions)
 - Helm 3.0+.
 - If you’d like to use NGINX Plus:
+  - Get the NGINX Ingress Controller JWT and [create a license secret]({{< relref "/installation/create-license-secret.md" >}}).
   - Download the image using your NGINX Ingress Controller subscription certificate and key. View the [Get NGINX Ingress Controller from the F5 Registry]({{< relref "installation/nic-images/get-registry-image.md" >}}) topic.
   - The [Get the NGINX Ingress Controller image with JWT]({{< relref "installation/nic-images/get-image-using-jwt.md" >}}) topic describes how to use your subscription JWT token to get the image.
   - The [Build NGINX Ingress Controller]({{< relref "installation/build-nginx-ingress-controller.md" >}}) topic explains how to push an image to a private Docker registry.
@@ -31,6 +34,9 @@ If you do not use the custom resources that require those CRDs (which correspond
 
 ### Upgrade the CRDs
 
+{{< note >}} Please make sure to read the steps outlined in [Upgrade to V4](https://docs.nginx.com/nginx-ingress-controller/installation/installing-nic/upgrade-to-v4/#update-custom-resource-apiversion) before running the CRD upgrade and perform the steps if applicable.
+{{< /note >}}
+
 To upgrade the CRDs, pull the chart sources as described in [Pull the Chart](#pull-the-chart) and then run:
 
 ```shell
@@ -40,14 +46,14 @@ kubectl apply -f crds/
 Alternatively, CRDs can be upgraded without pulling the chart by running:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds.yaml
 ```
 
 In the above command, `v{{< nic-version >}}` represents the version of NGINX Ingress Controller release rather than the Helm chart version.
 
 {{< note >}} The following warning is expected and can be ignored: `Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply`.
 
-Check the [release notes](https://www.github.com/nginxinc/kubernetes-ingress/releases) for a new release for any special upgrade procedures.
+Check the [release notes](https://www.github.com/nginx/kubernetes-ingress/releases) for a new release for any special upgrade procedures.
 {{< /note >}}
 
 ### Uninstall the CRDs
@@ -69,16 +75,16 @@ Run the following commands to install the chart with the release name my-release
 - For NGINX:
 
     ```shell
-    helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version {{< nic-helm-version >}}
+    helm install my-release oci://ghcr.io/nginx/charts/nginx-ingress --version {{< nic-helm-version >}}
     ```
 
 - For NGINX Plus: (This assumes you have pushed NGINX Ingress Controller image `nginx-plus-ingress` to your private registry `myregistry.example.com`)
 
     ```shell
-    helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version {{< nic-helm-version >}} --set controller.image.repository=myregistry.example.com/nginx-plus-ingress --set controller.nginxplus=true
+    helm install my-release oci://ghcr.io/nginx/charts/nginx-ingress --version {{< nic-helm-version >}} --set controller.image.repository=myregistry.example.com/nginx-plus-ingress --set controller.nginxplus=true
     ```
 
-These commands install the latest `edge` version of NGINX Ingress Controller from GitHub Container Registry. If you prefer using Docker Hub, you can replace `ghcr.io/nginxinc/charts/nginx-ingress` with `registry-1.docker.io/nginxcharts/nginx-ingress`.
+These commands install the latest `edge` version of NGINX Ingress Controller from GitHub Container Registry. If you prefer using Docker Hub, you can replace `ghcr.io/nginx/charts/nginx-ingress` with `registry-1.docker.io/nginxcharts/nginx-ingress`.
 
 ### Upgrade the chart
 
@@ -87,7 +93,7 @@ Helm does not upgrade the CRDs during a release upgrade. Before you upgrade a re
 To upgrade the release `my-release`:
 
 ```shell
-helm upgrade my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version {{< nic-helm-version >}}
+helm upgrade my-release oci://ghcr.io/nginx/charts/nginx-ingress --version {{< nic-helm-version >}}
 ```
 
 ### Uninstall the chart
@@ -108,7 +114,7 @@ To test the latest changes in NGINX Ingress Controller before a new release, you
 You can install the `edge` version by specifying the `--version` flag with the value `0.0.0-edge`:
 
 ```shell
-helm install my-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.0.0-edge
+helm install my-release oci://ghcr.io/nginx/charts/nginx-ingress --version 0.0.0-edge
 ```
 
 {{< warning >}} The `edge` version is not intended for production use. It is intended for testing and development purposes only. {{< /warning >}}
@@ -122,7 +128,7 @@ This step is required if you're installing the chart using its sources. It also 
 1. Pull the chart sources:
 
     ```shell
-    helm pull oci://ghcr.io/nginxinc/charts/nginx-ingress --untar --version {{< nic-helm-version >}}
+    helm pull oci://ghcr.io/nginx/charts/nginx-ingress --untar --version {{< nic-helm-version >}}
     ```
 
 2. Change your working directory to nginx-ingress:
@@ -175,7 +181,7 @@ Uninstalling the release does not remove the CRDs. To remove the CRDs, see [Unin
 
 ### Background
 
-In NGINX Ingress Controller version 3.1.0, [changes were introduced](https://github.com/nginxinc/kubernetes-ingress/pull/3606) to Helm resource names, labels and annotations to fit with Helm best practices.
+In NGINX Ingress Controller version 3.1.0, [changes were introduced](https://github.com/nginx/kubernetes-ingress/pull/3606) to Helm resource names, labels and annotations to fit with Helm best practices.
 When using Helm to upgrade from a version prior to 3.1.0, certain resources like Deployment, DaemonSet and Service will be recreated due to the aforementioned changes, which will result in downtime.
 
 Although the advisory is to update all resources in accordance with new naming convention, to avoid downtime follow the steps listed below.
@@ -220,7 +226,7 @@ The steps you should follow depend on the Helm release name:
    It could look as follows:
 
     ```shell
-    helm upgrade nginx-ingress oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.19.0 --set controller.kind=deployment/daemonset --set controller.nginxplus=false/true --set controller.image.pullPolicy=Always --set serviceNameOverride="nginx-ingress-nginx-ingress" --set controller.name="" --set fullnameOverride="nginx-ingress-nginx-ingress" -f values.yaml
+    helm upgrade nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 0.19.0 --set controller.kind=deployment/daemonset --set controller.nginxplus=false/true --set controller.image.pullPolicy=Always --set serviceNameOverride="nginx-ingress-nginx-ingress" --set controller.name="" --set fullnameOverride="nginx-ingress-nginx-ingress" -f values.yaml
     ```
 
 6. Once the upgrade process has finished, use `kubectl describe` on the deployment to verify the change by reviewing its events:
@@ -267,7 +273,7 @@ The steps you should follow depend on the Helm release name:
    It could look as follows:
 
     ```shell
-    helm upgrade test-release oci://ghcr.io/nginxinc/charts/nginx-ingress --version 0.19.0 --set controller.kind=deployment/daemonset --set controller.nginxplus=false/true --set controller.image.pullPolicy=Always --set serviceNameOverride="test-release-nginx-ingress" --set controller.name="" -f values.yaml
+    helm upgrade test-release oci://ghcr.io/nginx/charts/nginx-ingress --version 0.19.0 --set controller.kind=deployment/daemonset --set controller.nginxplus=false/true --set controller.image.pullPolicy=Always --set serviceNameOverride="test-release-nginx-ingress" --set controller.name="" -f values.yaml
     ```
 
 6. Once the upgrade process has finished, use `kubectl describe` on the deployment to verify the change by reviewing its events:
@@ -305,6 +311,17 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 | **controller.kind** | The kind of the Ingress Controller installation - deployment or daemonset. | deployment |
 | **controller.annotations** | Allows for setting of `annotations` for deployment or daemonset. | {} |
 | **controller.nginxplus** | Deploys the Ingress Controller for NGINX Plus. | false |
+| **controller.mgmt.licenseTokenSecretName** | Configures the secret used in the [license_token](https://nginx.org/en/docs/ngx_mgmt_module.html#license_token) directive. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `nginx.com/license` with the base64 encoded JWT in the `license.jwt` key. | license-token |
+| **controller.mgmt.enforceInitialReport** | Configures the [enforce_initial_report](https://nginx.org/en/docs/ngx_mgmt_module.html#enforce_initial_report) directive, which enables or disables the 180-day grace period for sending the initial usage report. | false |
+| **controller.mgmt.usageReport.endpoint** | Configures the endpoint of the [usage_report](https://nginx.org/en/docs/ngx_mgmt_module.html#usage_report) directive. This is used to configure the endpoint NGINX uses to send usage reports to NIM. | product.connect.nginx.com |
+| **controller.mgmt.usageReport.interval** | Configures the interval of the [usage_report](https://nginx.org/en/docs/ngx_mgmt_module.html#usage_report) directive. This specifies the frequency that usage reports are sent. This field takes an [NGINX time](https://nginx.org/en/docs/syntax.html). | 1h |
+| **controller.mgmt.sslVerify** | Configures the [ssl_verify](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_verify) directive, which enables or disables verification of the usage reporting endpoint certificate.  | true |
+| **controller.mgmt.resolver.ipv6** | Configures whether the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive will look up IPv6 addresses.  | true |
+| **controller.mgmt.resolver.valid** | Configures an [NGINX time](https://nginx.org/en/docs/syntax.html) that the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive will override the TTL value of responses from nameservers with.  | N/A |
+| **controller.mgmt.resolver.addresses** | Configures addresses used in the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive. This field takes a list of addresses. | N/A |
+| **controller.mgmt.sslCertificateSecretName** | Configures the secret used to create the `ssl_certificate` and `ssl_certificate_key` directives. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `kubernetes.io/tls` | N/A |
+| **controller.mgmt.sslTrustedCertificateSecretName** | Configures the secret used to create the file(s) referenced the in [ssl_trusted_certifcate](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_trusted_certificate), and [ssl_crl](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_crl) directives. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `nginx.org/ca`, where the `ca.crt` key contains a base64 encoded trusted cert, and the optional `ca.crl` key can contain a base64 encoded CRL. If the optional `ca.crl` key is supplied, it will configure the NGINX `ssl_crl` directive. | N/A |
+| **controller.mgmt.configMapName** | Allows changing the name of the MGMT config map. The name should not include a namespace| Autogenerated |
 | **controller.nginxReloadTimeout** | The timeout in milliseconds which the Ingress Controller will wait for a successful NGINX reload after a change or at the initial start. | 60000 |
 | **controller.hostNetwork** | Enables the Ingress Controller pods to use the host's network namespace. | false |
 | **controller.dnsPolicy** | DNS policy for the Ingress Controller pods. | ClusterFirst |
@@ -405,15 +422,15 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 | **controller.appprotect.volumes** | Volumes for App Protect WAF v5. | [{"name": "app-protect-bd-config", "emptyDir": {}},{"name": "app-protect-config", "emptyDir": {}},{"name": "app-protect-bundles", "emptyDir": {}}] |
 | **controller.appprotect.enforcer.host** | Host that the App Protect WAF v5 Enforcer runs on. | "127.0.0.1" |
 | **controller.appprotect.enforcer.port** | Port that the App Protect WAF v5 Enforcer runs on. | 50000 |
-| **controller.appprotect.enforcer.image** | The image repository of the App Protect WAF v5 Enforcer. | private-registry.nginx.com/nap/waf-enforcer |
-| **controller.appprotect.enforcer.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.3.0" |
-| **controller.appprotect.enforcer.digest** | The digest of the App Protect WAF v5 Enforcer. Takes precedence over tag if set. | "" |
-| **controller.appprotect.enforcer.pullPolicy** | The pull policy for the App Protect WAF v5 Enforcer image. | IfNotPresent |
+| **controller.appprotect.enforcer.image.repository** | The image repository of the App Protect WAF v5 Enforcer. | private-registry.nginx.com/nap/waf-enforcer |
+| **controller.appprotect.enforcer.image.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.5.0" |
+| **controller.appprotect.enforcer.image.digest** | The digest of the App Protect WAF v5 Enforcer. Takes precedence over tag if set. | "" |
+| **controller.appprotect.enforcer.image.pullPolicy** | The pull policy for the App Protect WAF v5 Enforcer image. | IfNotPresent |
 | **controller.appprotect.enforcer.securityContext** | The security context for App Protect WAF v5 Enforcer container. | {} |
-| **controller.appprotect.configManager.image** | The image repository of the App Protect WAF v5 Configuration Manager. | private-registry.nginx.com/nap/waf-config-mgr |
-| **controller.appprotect.configManager.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.3.0" |
-| **controller.appprotect.configManager.digest** | The digest of the App Protect WAF v5 Configuration Manager. Takes precedence over tag if set. | "" |
-| **controller.appprotect.configManager.pullPolicy** | The pull policy for the App Protect WAF v5 Configuration Manager image. | IfNotPresent |
+| **controller.appprotect.configManager.image.repository** | The image repository of the App Protect WAF v5 Configuration Manager. | private-registry.nginx.com/nap/waf-config-mgr |
+| **controller.appprotect.configManager.image.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.5.0" |
+| **controller.appprotect.configManager.image.digest** | The digest of the App Protect WAF v5 Configuration Manager. Takes precedence over tag if set. | "" |
+| **controller.appprotect.configManager.image.pullPolicy** | The pull policy for the App Protect WAF v5 Configuration Manager image. | IfNotPresent |
 | **controller.appprotect.configManager.securityContext** | The security context for App Protect WAF v5 Configuration Manager container. | {"allowPrivilegeEscalation":false,"runAsUser":101,"runAsNonRoot":true,"capabilities":{"drop":["all"]}} |
 | **controller.appprotectdos.enable** | Enables the App Protect DoS module in the Ingress Controller. | false |
 | **controller.appprotectdos.enable** | Enables the App Protect DoS module in the Ingress Controller. | false |

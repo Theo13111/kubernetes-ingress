@@ -9,8 +9,11 @@ import (
 	"text/template"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
+	"github.com/nginx/kubernetes-ingress/internal/configs/commonhelpers"
+	"github.com/nginx/kubernetes-ingress/internal/nginx"
 )
+
+var fakeManager = nginx.NewFakeManager("/etc/nginx")
 
 func TestMain(m *testing.M) {
 	v := m.Run()
@@ -46,20 +49,6 @@ func TestExecuteMainTemplateForNGINXPlus(t *testing.T) {
 	buf := &bytes.Buffer{}
 
 	err := tmpl.Execute(buf, mainCfg)
-	if err != nil {
-		t.Error(err)
-	}
-	snaps.MatchSnapshot(t, buf.String())
-	t.Log(buf.String())
-}
-
-func TestExecuteMainTemplateForNGINXPlusR31(t *testing.T) {
-	t.Parallel()
-
-	tmpl := newNGINXPlusMainTmpl(t)
-	buf := &bytes.Buffer{}
-
-	err := tmpl.Execute(buf, mainCfgR31)
 	if err != nil {
 		t.Error(err)
 	}
@@ -892,6 +881,144 @@ func TestExecuteTemplate_ForMainForNGINXPlusWithHTTP2Off(t *testing.T) {
 	snaps.MatchSnapshot(t, buf.String())
 }
 
+func TestExecuteTemplate_ForMainForNGINXWithZoneSyncEnabledDefaultPort(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgWithZoneSyncEnabledDefaultPort)
+	t.Log(buf.String())
+
+	if err != nil {
+		t.Fatalf("Failed to write template %v", err)
+	}
+
+	wantDirectives := []string{
+		"zone_sync;",
+		"zone_sync_server nginx-ingress-headless.nginx-ingress.svc.cluster.local:12345 resolve;",
+	}
+
+	mainConf := buf.String()
+	for _, want := range wantDirectives {
+		if !strings.Contains(mainConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
+func TestExecuteTemplate_ForMainForNGINXWithZoneSyncEnabledCustomPort(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgWithZoneSyncEnabledCustomPort)
+	t.Log(buf.String())
+
+	if err != nil {
+		t.Fatalf("Failed to write template %v", err)
+	}
+
+	wantDirectives := []string{
+		"zone_sync;",
+		"zone_sync_server nginx-ingress-headless.nginx-ingress.svc.cluster.local:1337 resolve;",
+	}
+
+	mainConf := buf.String()
+	for _, want := range wantDirectives {
+		if !strings.Contains(mainConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
+func TestExecuteTemplate_ForMainForNGINXWithZoneSyncEnabledCustomResolverAddress(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgWithZoneSyncEnabledCustomResolverAddress)
+	t.Log(buf.String())
+
+	if err != nil {
+		t.Fatalf("Failed to write template %v", err)
+	}
+
+	wantDirectives := []string{
+		"resolver example.com",
+		"zone_sync;",
+		"zone_sync_server nginx-ingress-headless.nginx-ingress.svc.cluster.local:12345 resolve;",
+	}
+
+	mainConf := buf.String()
+	for _, want := range wantDirectives {
+		if !strings.Contains(mainConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
+func TestExecuteTemplate_ForMainForNGINXWithZoneSyncEnabledCustomResolverAddressAndValid(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgWithZoneSyncEnabledCustomResolverAddressAndValid)
+	t.Log(buf.String())
+
+	if err != nil {
+		t.Fatalf("Failed to write template %v", err)
+	}
+
+	wantDirectives := []string{
+		"resolver example.com valid",
+		"zone_sync;",
+		"zone_sync_server nginx-ingress-headless.nginx-ingress.svc.cluster.local:1223 resolve;",
+	}
+
+	mainConf := buf.String()
+	for _, want := range wantDirectives {
+		if !strings.Contains(mainConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
+func TestExecuteTemplate_ForMainForNGINXWithZoneSyncEnabledCustomResolverAddressAndValidAndIPV6Off(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusMainTmpl(t)
+	buf := &bytes.Buffer{}
+
+	err := tmpl.Execute(buf, mainCfgWithZoneSyncEnabledCustomResolverAddressAndValidAndIPV6Off)
+	t.Log(buf.String())
+
+	if err != nil {
+		t.Fatalf("Failed to write template %v", err)
+	}
+
+	wantDirectives := []string{
+		"resolver example.com valid=20s ipv6=off;",
+		"zone_sync;",
+		"zone_sync_server nginx-ingress-headless.nginx-ingress.svc.cluster.local:1223 resolve;",
+	}
+
+	mainConf := buf.String()
+	for _, want := range wantDirectives {
+		if !strings.Contains(mainConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
 func TestExecuteTemplate_ForIngressForNGINXWithProxySetHeadersAnnotationWithDefaultValue(t *testing.T) {
 	t.Parallel()
 
@@ -1688,6 +1815,64 @@ func TestExecuteTemplate_ForIngressForNGINXPlusWithRequestRateLimitMinions(t *te
 	snaps.MatchSnapshot(t, buf.String())
 }
 
+func TestExecuteTemplate_ForIngressForNGINXPlusWithRequestRateLimitZoneSync(t *testing.T) {
+	t.Parallel()
+
+	tmpl := newNGINXPlusIngressTmpl(t)
+	buf := &bytes.Buffer{}
+
+	ingressCfg := IngressNginxConfig{
+		Ingress: Ingress{
+			Name:      "myingress",
+			Namespace: "default",
+		},
+		Servers: []Server{
+			{
+				Name: "test.example.com",
+				Locations: []Location{
+					{
+						Path:     "/",
+						Upstream: testUpstream,
+						LimitReq: &LimitReq{
+							Zone:       "default/myingress_sync",
+							Burst:      100,
+							RejectCode: 429,
+						},
+					},
+				},
+			},
+		},
+		LimitReqZones: []LimitReqZone{
+			{
+				Name: "default/zone1_sync",
+				Key:  "${binary_remote_addr}",
+				Size: "10m",
+				Rate: "200r/s",
+				Sync: true,
+			},
+		},
+	}
+
+	err := tmpl.Execute(buf, ingressCfg)
+	t.Log(buf.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ingConf := buf.String()
+
+	wantDirectives := []string{
+		"limit_req_zone ${binary_remote_addr} zone=default/zone1_sync:10m rate=200r/s sync;",
+		"limit_req zone=default/myingress_sync burst=100;",
+	}
+
+	for _, want := range wantDirectives {
+		if !strings.Contains(ingConf, want) {
+			t.Errorf("want %q in generated config", want)
+		}
+	}
+	snaps.MatchSnapshot(t, buf.String())
+}
+
 func newNGINXPlusIngressTmpl(t *testing.T) *template.Template {
 	t.Helper()
 	tmpl, err := template.New("nginx-plus.ingress.tmpl").Funcs(helperFunctions).ParseFiles("nginx-plus.ingress.tmpl")
@@ -2017,6 +2202,7 @@ var (
 	}
 
 	mainCfg = MainConfig{
+		StaticSSLPath:                      fakeManager.GetSecretsDir(),
 		DefaultHTTPListenerPort:            80,
 		DefaultHTTPSListenerPort:           443,
 		ServerNamesHashMaxSize:             "512",
@@ -2039,7 +2225,7 @@ var (
 		KeepaliveRequests:                  100,
 		VariablesHashBucketSize:            256,
 		VariablesHashMaxSize:               1024,
-		NginxVersion:                       nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r30)"),
+		NginxVersion:                       nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AppProtectLoadModule:               true,
 		AppProtectV5LoadModule:             false,
 		AppProtectV5EnforcerAddr:           "",
@@ -2060,36 +2246,8 @@ var (
 		AccessLog:                      "/dev/stdout main",
 	}
 
-	mainCfgR31 = MainConfig{
-		DefaultHTTPListenerPort:  80,
-		DefaultHTTPSListenerPort: 443,
-		ServerNamesHashMaxSize:   "512",
-		ServerTokens:             "off",
-		WorkerProcesses:          "auto",
-		WorkerCPUAffinity:        "auto",
-		WorkerShutdownTimeout:    "1m",
-		WorkerConnections:        "1024",
-		WorkerRlimitNofile:       "65536",
-		LogFormat:                []string{"$remote_addr", "$remote_user"},
-		LogFormatEscaping:        "default",
-		StreamSnippets:           []string{"# comment"},
-		StreamLogFormat:          []string{"$remote_addr", "$remote_user"},
-		StreamLogFormatEscaping:  "none",
-		ResolverAddresses:        []string{"example.com", "127.0.0.1"},
-		ResolverIPV6:             false,
-		ResolverValid:            "10s",
-		ResolverTimeout:          "15s",
-		KeepaliveTimeout:         "65s",
-		KeepaliveRequests:        100,
-		VariablesHashBucketSize:  256,
-		VariablesHashMaxSize:     1024,
-		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
-		AppProtectV5LoadModule:   true,
-		AppProtectV5EnforcerAddr: "enforcer.svc.local",
-		AccessLog:                "/dev/stdout main",
-	}
-
 	mainCfgHTTP2On = MainConfig{
+		StaticSSLPath:                      fakeManager.GetSecretsDir(),
 		DefaultHTTPListenerPort:            80,
 		DefaultHTTPSListenerPort:           443,
 		HTTP2:                              true,
@@ -2113,7 +2271,7 @@ var (
 		KeepaliveRequests:                  100,
 		VariablesHashBucketSize:            256,
 		VariablesHashMaxSize:               1024,
-		NginxVersion:                       nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:                       nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AppProtectLoadModule:               true,
 		AppProtectV5LoadModule:             false,
 		AppProtectV5EnforcerAddr:           "",
@@ -2130,6 +2288,7 @@ var (
 	}
 
 	mainCfgCustomTLSPassthroughPort = MainConfig{
+		StaticSSLPath:           fakeManager.GetSecretsDir(),
 		ServerNamesHashMaxSize:  "512",
 		ServerTokens:            "off",
 		WorkerProcesses:         "auto",
@@ -2152,11 +2311,12 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          true,
 		TLSPassthroughPort:      8443,
-		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:               "/dev/stdout main",
 	}
 
 	mainCfgWithoutTLSPassthrough = MainConfig{
+		StaticSSLPath:           fakeManager.GetSecretsDir(),
 		ServerNamesHashMaxSize:  "512",
 		ServerTokens:            "off",
 		WorkerProcesses:         "auto",
@@ -2179,11 +2339,12 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          false,
 		TLSPassthroughPort:      8443,
-		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:               "/dev/stdout main",
 	}
 
 	mainCfgDefaultTLSPassthroughPort = MainConfig{
+		StaticSSLPath:           fakeManager.GetSecretsDir(),
 		ServerNamesHashMaxSize:  "512",
 		ServerTokens:            "off",
 		WorkerProcesses:         "auto",
@@ -2206,11 +2367,12 @@ var (
 		VariablesHashMaxSize:    1024,
 		TLSPassthrough:          true,
 		TLSPassthroughPort:      443,
-		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:            nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:               "/dev/stdout main",
 	}
 
 	mainCfgCustomDefaultHTTPAndHTTPSListenerPorts = MainConfig{
+		StaticSSLPath:            fakeManager.GetSecretsDir(),
 		DefaultHTTPListenerPort:  8083,
 		DefaultHTTPSListenerPort: 8443,
 		ServerNamesHashMaxSize:   "512",
@@ -2233,11 +2395,12 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
-		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:                "/dev/stdout main",
 	}
 
 	mainCfgCustomDefaultHTTPListenerPort = MainConfig{
+		StaticSSLPath:            fakeManager.GetSecretsDir(),
 		DefaultHTTPListenerPort:  8083,
 		DefaultHTTPSListenerPort: 443,
 		ServerNamesHashMaxSize:   "512",
@@ -2260,11 +2423,12 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
-		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:                "/dev/stdout main",
 	}
 
 	mainCfgCustomDefaultHTTPSListenerPort = MainConfig{
+		StaticSSLPath:            fakeManager.GetSecretsDir(),
 		DefaultHTTPListenerPort:  80,
 		DefaultHTTPSListenerPort: 8443,
 		ServerNamesHashMaxSize:   "512",
@@ -2287,8 +2451,54 @@ var (
 		KeepaliveRequests:        100,
 		VariablesHashBucketSize:  256,
 		VariablesHashMaxSize:     1024,
-		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.25.3 (nginx-plus-r31)"),
+		NginxVersion:             nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
 		AccessLog:                "/dev/stdout main",
+	}
+
+	mainCfgWithZoneSyncEnabledDefaultPort = MainConfig{
+		ZoneSyncConfig: ZoneSyncConfig{
+			Enable: true,
+			Port:   12345,
+			Domain: "nginx-ingress-headless.nginx-ingress.svc.cluster.local",
+		},
+		NginxVersion: nginx.NewVersion("nginx version: nginx/1.27.2 (nginx-plus-r33)"),
+	}
+
+	mainCfgWithZoneSyncEnabledCustomPort = MainConfig{
+		ZoneSyncConfig: ZoneSyncConfig{
+			Enable: true,
+			Port:   1337,
+			Domain: "nginx-ingress-headless.nginx-ingress.svc.cluster.local",
+		},
+	}
+	mainCfgWithZoneSyncEnabledCustomResolverAddress = MainConfig{
+		ZoneSyncConfig: ZoneSyncConfig{
+			Enable:            true,
+			Port:              12345,
+			Domain:            "nginx-ingress-headless.nginx-ingress.svc.cluster.local",
+			ResolverAddresses: []string{"example.com"},
+		},
+	}
+
+	mainCfgWithZoneSyncEnabledCustomResolverAddressAndValid = MainConfig{
+		ZoneSyncConfig: ZoneSyncConfig{
+			Enable:            true,
+			Port:              1223,
+			Domain:            "nginx-ingress-headless.nginx-ingress.svc.cluster.local",
+			ResolverAddresses: []string{"example.com"},
+			ResolverValid:     "20s",
+		},
+	}
+
+	mainCfgWithZoneSyncEnabledCustomResolverAddressAndValidAndIPV6Off = MainConfig{
+		ZoneSyncConfig: ZoneSyncConfig{
+			Enable:            true,
+			Port:              1223,
+			Domain:            "nginx-ingress-headless.nginx-ingress.svc.cluster.local",
+			ResolverAddresses: []string{"example.com"},
+			ResolverValid:     "20s",
+			ResolverIPV6:      commonhelpers.BoolToPointerBool(false),
+		},
 	}
 
 	// Vars for Mergable Ingress Master - Minion tests

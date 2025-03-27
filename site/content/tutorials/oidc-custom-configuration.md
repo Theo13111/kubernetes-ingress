@@ -1,9 +1,10 @@
 ---
-doctypes:
-- concept
 title: Customize OIDC Configuration with NGINX Ingress Controller
-toc: true
 weight: 1800
+toc: true
+type: how-to
+product: NIC
+docs: DOCS-000
 ---
 
 The F5 NGINX Ingress Controller implements OpenID Connect (OIDC) using the NGINX OpenID Connect Reference implementation: [nginx-openid-connect](https://github.com/nginxinc/nginx-openid-connect).
@@ -12,7 +13,7 @@ This guide will walk through how to customize and configure this default impleme
 
 ## Prerequisites
 
-This guide assumes that you have an F5 NGINX Ingress Controller deployed. If not, please follow the installation steps using either the [Manifest](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/) or [HELM](https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-helm/) approach.
+This guide assumes that you have an F5 NGINX Ingress Controller deployed. If not, please follow the installation steps using either the [Manifest]({{< ref "/installation/installing-nic/installation-with-manifests.md" >}}) or [Helm]({{< ref "/installation/installing-nic/installation-with-helm.md" >}}) approach.
 
 To customize the NGINX OpenID Connect Reference implementation, you will need to:
 
@@ -27,7 +28,7 @@ Run the below command to generate a ConfigMap with the contents of the `oidc.con
 **NOTE** The ConfigMap must be deployed in the same `namespace` as the F5 NGINX Ingress Controller.
 
 ```console
-kubectl create configmap oidc-config-map --from-literal=oidc.conf="$(curl -k https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/internal/configs/oidc/oidc.conf)"
+kubectl create configmap oidc-config-map --from-literal=oidc.conf="$(curl -k https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/internal/configs/oidc/oidc.conf)"
 ```
 
 Use the `kubectl describe` command to confirm the contents of the ConfigMap are correct.
@@ -92,11 +93,11 @@ data:
         # Rest of configuration file truncated
 ```
 
-{{< important >}} 
+{{< important >}}
 
-In the next step, NGINX Ingress Controller will be deployed using this ConfigMap. 
+In the next step, NGINX Ingress Controller will be deployed using this ConfigMap.
 
-Any changes made to this ConfigMap must be made **before** deploying or updating NGINX Ingress Controller. If an update is applied to the ConfigMap after NGINX Ingress Controller is deployed, it will not be applied. 
+Any changes made to this ConfigMap must be made **before** deploying or updating NGINX Ingress Controller. If an update is applied to the ConfigMap after NGINX Ingress Controller is deployed, it will not be applied.
 
 Applying any updates to the data in this ConfigMap will require NGINX Ingress Controller to be re-deployed.
 

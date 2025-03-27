@@ -29,14 +29,14 @@ permissions:
 jobs:
   checks:
     name: Checks and variables
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       id-token: write
     outputs:
       docs_only: ${{ github.event.pull_request && steps.docs.outputs.docs_only == 'true' }}
       some_docs: ${{ github.event.pull_request && steps.docs.outputs.some_docs == 'true' }}
-      k8s_latest: ${{ steps.vars.outputs.k8s_latest }}
+      k8s_latest: "1.32.0"
       go_path: ${{ steps.vars.outputs.go_path }}
       go_code_md5: ${{ steps.vars.outputs.go_code_md5 }}
       binary_cache_hit: ${{ steps.binary-cache.outputs.cache-hit }}
@@ -80,7 +80,7 @@ jobs:
         shell: bash --noprofile --norc -o pipefail {0}
 
       - name: Setup Golang Environment
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: go.mod
 
@@ -88,10 +88,10 @@ jobs:
         id: vars
         run: |
           kindest_latest=$(curl -s "https://hub.docker.com/v2/repositories/kindest/node/tags" \
-            | grep -o '"name": *"[^"]*' \
-            | grep -o '[^"]*$' \
+            | jq -r '.results[].name' \
             | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
             | sort -rV \
+            | grep -v v1.32.1 \
             | head -n 1 \
             | sed 's/^.\{1\}//' \
             | tr -d '\n')
@@ -100,7 +100,7 @@ jobs:
           source .github/data/version.txt
           echo "ic_version=${IC_VERSION}" >> $GITHUB_OUTPUT
           echo "chart_version=${HELM_CHART_VERSION}" >> $GITHUB_OUTPUT
-          echo "forked_workflow=${{ (github.event.pull_request && github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name) || github.repository != 'nginxinc/kubernetes-ingress' }}" >> $GITHUB_OUTPUT
+          echo "forked_workflow=${{ (github.event.pull_request && github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name) || github.repository != 'nginx/kubernetes-ingress' }}" >> $GITHUB_OUTPUT
           ./.github/scripts/variables.sh go_code_md5 >> $GITHUB_OUTPUT
           ./.github/scripts/variables.sh docker_md5 >> $GITHUB_OUTPUT
           ./.github/scripts/variables.sh build_tag >> $GITHUB_OUTPUT
@@ -119,7 +119,7 @@ jobs:
 
       - name: Fetch Cached Binary Artifacts
         id: binary-cache
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ steps.vars.outputs.go_code_md5 }}
@@ -127,7 +127,7 @@ jobs:
 
       - name: Authenticate to Google Cloud
         id: auth
-        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
+        uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
@@ -135,7 +135,7 @@ jobs:
         if: ${{ steps.vars.outputs.forked_workflow == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -171,7 +171,7 @@ jobs:
 
   verify-codegen:
     name: Verify generated code
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
     needs: checks
@@ -180,29 +180,35 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Golang Environment
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: go.mod
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Check if go.mod and go.sum are up to date
         run: go mod tidy && git diff --exit-code -- go.mod go.sum
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Check if CRDs changed
         run: make update-crds && git diff --name-only --exit-code config/crd/bases
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Check if Codegen changed
         run: |
-          cd ../.. && mkdir -p github.com/nginxinc && mv kubernetes-ingress/kubernetes-ingress github.com/nginxinc/ && cd github.com/nginxinc/kubernetes-ingress
+          cd ../.. && mkdir -p github.com/nginx && mv kubernetes-ingress/kubernetes-ingress github.com/nginx/ && cd github.com/nginx/kubernetes-ingress
           make update-codegen && git diff --name-only --exit-code pkg/**
-          cd ../../.. && mv github.com/nginxinc/kubernetes-ingress kubernetes-ingress/kubernetes-ingress
+          cd ../../.. && mv github.com/nginx/kubernetes-ingress kubernetes-ingress/kubernetes-ingress
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Install gofumpt
         run: go install mvdan.cc/gofumpt@latest
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Check if telemetry schema changed
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           make telemetry-schema && git diff --name-only --exit-code internal/telemetry
+        if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Check if make docs builds
         if: ${{ needs.checks.outputs.some_docs == 'true' }}
@@ -210,14 +216,14 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: checks
     steps:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Golang Environment
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: go.mod
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
@@ -227,7 +233,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
           files: ./coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }} # required
@@ -236,13 +242,13 @@ jobs:
       - name: Run static check
         uses: dominikh/staticcheck-action@fe1dd0c3658873b46f8c9bb3291096a617310ca6 # v1.3.1
         with:
-          version: "v0.5.1"
+          version: "v0.6.0"
           install-go: false
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
   binaries:
     name: Build Binaries
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: [checks, unit-tests, verify-codegen]
     permissions:
       contents: write # for goreleaser/goreleaser-action to manage releases
@@ -255,13 +261,13 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Golang Environment
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: go.mod
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Build binaries
-        uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf # v6.1.0
+        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
         with:
           version: latest
           args: build --snapshot --clean
@@ -280,7 +286,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Store Artifacts in Cache
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
@@ -380,7 +386,7 @@ jobs:
   helm-tests:
     if: ${{ needs.checks.outputs.docs_only != 'true' }}
     name: Helm Tests ${{ matrix.base-os }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: [checks, binaries, build-docker, build-docker-plus]
     strategy:
       fail-fast: false
@@ -403,7 +409,7 @@ jobs:
 
       - name: Authenticate to Google Cloud
         id: auth
-        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
+        uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
@@ -411,7 +417,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' || needs.checks.outputs.docs_only == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -432,18 +438,18 @@ jobs:
         if: ${{ ( needs.checks.outputs.forked_workflow == 'false' || needs.checks.outputs.docs_only == 'false' ) && steps.stable_exists.outputs.exists != 'true' }}
 
       - name: Fetch Cached Artifacts
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.checks.outputs.go_code_md5 }}
         if: ${{ needs.checks.outputs.forked_workflow == 'true' && needs.checks.outputs.docs_only == 'false' }}
 
       - name: Docker Buildx
-        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         if: ${{ needs.checks.outputs.forked_workflow == 'true' && needs.checks.outputs.docs_only == 'false' }}
 
       - name: Build Docker Image ${{ matrix.base-os }}
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           file: build/Dockerfile
           context: "."
@@ -464,8 +470,14 @@ jobs:
         id: k8s
         run: |
           kind create cluster --name ${{ github.run_id }} --image=kindest/node:v${{ needs.checks.outputs.k8s_latest }} --wait 75s
+          docker version
           kind load docker-image "${{ matrix.image }}:${{ matrix.tag }}" --name ${{ github.run_id }}
+          echo "DEBUG: Kind setup complete!"
         if: ${{ steps.stable_exists.outputs.exists != 'true' && needs.checks.outputs.docs_only == 'false' }}
+
+      - name: Create Plus Secret
+        run: kubectl create secret generic license-token --from-literal=license.jwt="${{ secrets.PLUS_JWT }}" --type="nginx.com/license"
+        if: ${{ matrix.type == 'plus' && steps.stable_exists.outputs.exists != 'true' && needs.checks.outputs.docs_only == 'false' }}
 
       - name: Install Chart
         run: >
@@ -513,7 +525,7 @@ jobs:
   setup-matrix:
     if: ${{ inputs.force || needs.checks.outputs.docs_only != 'true' }}
     name: Setup Matrix for Smoke Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: [binaries, checks]
     permissions:
       contents: read
@@ -533,11 +545,11 @@ jobs:
           echo "matrix_nap=$(cat .github/data/matrix-smoke-nap.json | jq -c --arg latest "${{ needs.checks.outputs.k8s_latest }}" '.k8s += [$latest]')" >> $GITHUB_OUTPUT
 
       - name: Docker Buildx
-        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
       - name: Authenticate to Google Cloud
         id: auth
-        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
+        uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
         with:
           token_format: access_token
           workload_identity_provider: ${{ secrets.GCR_WORKLOAD_IDENTITY }}
@@ -545,7 +557,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' && needs.checks.outputs.docs_only == 'false' }}
 
       - name: Login to GCR
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: gcr.io
           username: oauth2accesstoken
@@ -561,7 +573,7 @@ jobs:
         if: ${{ needs.checks.outputs.forked_workflow == 'false' && needs.checks.outputs.docs_only == 'false' }}
 
       - name: Build Test-Runner Container
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           file: tests/Dockerfile
           context: "."
@@ -669,7 +681,7 @@ jobs:
 
   final-results:
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     name: Final CI Results
     needs: [tag-stable, build-docker, build-docker-plus, build-docker-nap, smoke-tests-oss, smoke-tests-plus, smoke-tests-nap]
     steps:
@@ -678,6 +690,9 @@ jobs:
           smokeOSSResult="${{ needs.smoke-tests-oss.result }}"
           smokePlusResult="${{ needs.smoke-tests-plus.result }}"
           smokeNAPResult="${{ needs.smoke-tests-nap.result }}"
+          buildOSSResult="${{ needs.build-docker.result }}"
+          buildPlusResult="${{ needs.build-docker-plus.result }}"
+          buildNAPResult="${{ needs.build-docker-nap.result }}"
           if [[ $tagResult != "success" && $tagResult != "skipped" ]]; then
             exit 1
           fi
@@ -688,6 +703,15 @@ jobs:
             exit 1
           fi
           if [[ $smokeNAPResult != "success" && $smokeNAPResult != "skipped" ]]; then
+            exit 1
+          fi
+          if [[ $buildOSSResult != "success" && $buildOSSResult != "skipped" ]]; then
+            exit 1
+          fi
+          if [[ $buildPlusResult != "success" && $buildPlusResult != "skipped" ]]; then
+            exit 1
+          fi
+          if [[ $buildNAPResult != "success" && $buildNAPResult != "skipped" ]]; then
             exit 1
           fi
 

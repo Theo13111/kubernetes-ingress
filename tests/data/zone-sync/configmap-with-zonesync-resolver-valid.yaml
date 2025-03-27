@@ -4,4 +4,5 @@ metadata:
   name: nginx-config
   namespace: nginx-ingress
 data:
-  http2: "true"
+  zone-sync: "true"
+  zone-sync-resolver-valid: "10s"

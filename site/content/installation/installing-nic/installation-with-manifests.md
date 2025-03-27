@@ -1,15 +1,17 @@
 ---
-docs: DOCS-603
-doctypes:
-- ''
 title: Installation with Manifests
 toc: true
 weight: 200
+type: how-to
+product: NIC
+docs: DOCS-603
 ---
 
 This guide explains how to use Manifests to install F5 NGINX Ingress Controller, then create both common and custom resources and set up role-based access control.
 
 ## Before you start
+
+If you are using NGINX Plus, get the NGINX Ingress Controller JWT and [create a license secret]({{< relref "/installation/create-license-secret.md" >}}).
 
 ### Get the NGINX Controller Image
 
@@ -28,10 +30,10 @@ Choose one of the following methods to get the NGINX Ingress Controller image:
 Clone the NGINX Ingress Controller repository using the command shown below, and replace `<version_number>` with the specific release you want to use.
 
 ```shell
-git clone https://github.com/nginxinc/kubernetes-ingress.git --branch <version_number>
+git clone https://github.com/nginx/kubernetes-ingress.git --branch <version_number>
 ```
 
-For example, if you want to use version {{< nic-version >}}, the command would be `git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v{{< nic-version >}}`.
+For example, if you want to use version {{< nic-version >}}, the command would be `git clone https://github.com/nginx/kubernetes-ingress.git --branch v{{< nic-version >}}`.
 
 This guide assumes you are using the latest release.
 
@@ -87,13 +89,13 @@ There are optional CRDs that are necessary if you want to use NGINX App Protect 
 {{<  note >}} This step can be skipped if you are using App Protect WAF module with policy bundles. {{<  /note >}}
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-waf.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-waf.yaml
 ```
 
 **NGINX App Protect DoS**:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
+kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
 ```
 
 {{%/tab%}}
@@ -185,7 +187,7 @@ For more information about the _LoadBalancer_ service, refer to the [Kubernetes 
         kubectl apply -f deployments/service/loadbalancer-aws-elb.yaml
         ```
 
-        If you're using AWS, Kubernetes will set up a Classic Load Balancer (ELB) in TCP mode. This load balancer will have the PROXY protocol enabled to pass along the client's IP address and port.
+        For more details see service guide [here](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/)
 
 2. AWS users: Follow these additional steps to work with ELB in TCP mode.
 
@@ -258,17 +260,17 @@ Connect to ports 80 and 443 using the IP address of any node in the cluster wher
 
    1. Delete core custom resource definitions:
     ```shell
-    kubectl delete -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds.yaml
+    kubectl delete -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds.yaml
     ```
    2. Delete custom resource definitions for the NGINX App Protect WAF module:
 
    ```shell
-    kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-waf.yaml
+    kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-waf.yaml
     ```
 
    3. Delete custom resource definitions for the NGINX App Protect DoS module:
    ```shell
-    kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
+    kubectl apply -f https://raw.githubusercontent.com/nginx/kubernetes-ingress/v{{< nic-version >}}/deploy/crds-nap-dos.yaml
     ```
    {{%/tab%}}
 

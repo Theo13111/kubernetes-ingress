@@ -5,6 +5,7 @@ doctypes:
 title: Use the GCP Marketplace NGINX Ingress Controller image
 toc: true
 weight: 300
+draft: true
 ---
 
 Follow these steps to deploy F5 NGINX Ingress Controller through the GCP Marketplace.
@@ -114,4 +115,4 @@ For options to customize your resources, see our [Configuration documentation]({
 
 ## Basic Usage
 
-To learn how to set up a basic application with NGINX Ingress Controller, refer to our [Basic Configuration Example](https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/custom-resources/basic-configuration).
+To learn how to set up a basic application with NGINX Ingress Controller, refer to our [Basic Configuration Example](https://github.com/nginx/kubernetes-ingress/tree/main/examples/custom-resources/basic-configuration).

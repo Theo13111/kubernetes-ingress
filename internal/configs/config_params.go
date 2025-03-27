@@ -3,8 +3,8 @@ package configs
 import (
 	"context"
 
-	"github.com/nginxinc/kubernetes-ingress/internal/configs/version2"
-	"github.com/nginxinc/kubernetes-ingress/internal/nginx"
+	"github.com/nginx/kubernetes-ingress/internal/configs/version2"
+	"github.com/nginx/kubernetes-ingress/internal/nginx"
 )
 
 // ConfigParams holds NGINX configuration parameters that affect the main NGINX config
@@ -90,6 +90,7 @@ type ConfigParams struct {
 	UseClusterIP                           bool
 	VariablesHashBucketSize                uint64
 	VariablesHashMaxSize                   uint64
+	ZoneSync                               ZoneSync
 
 	RealIPHeader    string
 	RealIPRecursive bool
@@ -175,6 +176,37 @@ type Listener struct {
 	Protocol string
 }
 
+// ZoneSync holds zone sync values for state sharing.
+type ZoneSync struct {
+	Enable            bool
+	Port              int
+	Domain            string
+	ResolverAddresses []string
+	ResolverValid     string
+	ResolverIPV6      *bool
+}
+
+// MGMTSecrets holds mgmt block secret names
+type MGMTSecrets struct {
+	License     string
+	ClientAuth  string
+	TrustedCert string
+	TrustedCRL  string
+}
+
+// MGMTConfigParams holds mgmt block parameters.
+type MGMTConfigParams struct {
+	Context              context.Context
+	SSLVerify            *bool
+	ResolverAddresses    []string
+	ResolverIPV6         *bool
+	ResolverValid        string
+	EnforceInitialReport *bool
+	Endpoint             string
+	Interval             string
+	Secrets              MGMTSecrets
+}
+
 // NewDefaultConfigParams creates a ConfigParams with default values.
 func NewDefaultConfigParams(ctx context.Context, isPlus bool) *ConfigParams {
 	upstreamZoneSize := "256k"
@@ -217,5 +249,15 @@ func NewDefaultConfigParams(ctx context.Context, isPlus bool) *ConfigParams {
 		LimitReqZoneSize:              "10m",
 		LimitReqLogLevel:              "error",
 		LimitReqRejectCode:            429,
+	}
+}
+
+// NewDefaultMGMTConfigParams creates a ConfigParams with mgmt values.
+func NewDefaultMGMTConfigParams(ctx context.Context) *MGMTConfigParams {
+	return &MGMTConfigParams{
+		Context:              ctx,
+		SSLVerify:            nil,
+		EnforceInitialReport: nil,
+		Secrets:              MGMTSecrets{},
 	}
 }

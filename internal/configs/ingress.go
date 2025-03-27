@@ -6,17 +6,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nginxinc/kubernetes-ingress/pkg/apis/dos/v1beta1"
+	"github.com/nginx/kubernetes-ingress/pkg/apis/dos/v1beta1"
 
-	"github.com/nginxinc/kubernetes-ingress/internal/k8s/secrets"
-	nl "github.com/nginxinc/kubernetes-ingress/internal/logger"
+	"github.com/nginx/kubernetes-ingress/internal/k8s/secrets"
+	nl "github.com/nginx/kubernetes-ingress/internal/logger"
 	api_v1 "k8s.io/api/core/v1"
 	networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/nginxinc/kubernetes-ingress/internal/configs/version1"
+	"github.com/nginx/kubernetes-ingress/internal/configs/version1"
 )
 
 const emptyHost = ""
@@ -46,6 +46,7 @@ type IngressEx struct {
 	AppProtectLogs   []AppProtectLog
 	DosEx            *DosEx
 	SecretRefs       map[string]*secrets.SecretReference
+	ZoneSync         bool
 }
 
 // DosEx holds a DosProtectedResource and the dos policy and log confs it references.
@@ -271,6 +272,9 @@ func generateNginxCfg(p NginxCfgParams) (version1.IngressNginxConfig, Warnings) 
 
 			if cfgParams.LimitReqRate != "" {
 				zoneName := p.ingEx.Ingress.Namespace + "/" + p.ingEx.Ingress.Name
+				if p.ingEx.ZoneSync {
+					zoneName = fmt.Sprintf("%v_sync", zoneName)
+				}
 				loc.LimitReq = &version1.LimitReq{
 					Zone:       zoneName,
 					Burst:      cfgParams.LimitReqBurst,
@@ -283,13 +287,19 @@ func generateNginxCfg(p NginxCfgParams) (version1.IngressNginxConfig, Warnings) 
 				if !limitReqZoneExists(limitReqZones, zoneName) {
 					rate := cfgParams.LimitReqRate
 					if cfgParams.LimitReqScale && p.ingressControllerReplicas > 0 {
-						rate = scaleRatelimit(rate, p.ingressControllerReplicas)
+						if p.ingEx.ZoneSync {
+							warningText := fmt.Sprintf("Ingress %s/%s: both zone sync and rate limit scale are enabled, the rate limit scale value will not be used.", p.ingEx.Ingress.Namespace, p.ingEx.Ingress.Name)
+							nl.Warn(l, warningText)
+						} else {
+							rate = scaleRatelimit(rate, p.ingressControllerReplicas)
+						}
 					}
 					limitReqZones = append(limitReqZones, version1.LimitReqZone{
 						Name: zoneName,
 						Key:  cfgParams.LimitReqKey,
 						Size: cfgParams.LimitReqZoneSize,
 						Rate: rate,
+						Sync: p.ingEx.ZoneSync,
 					})
 				}
 			}

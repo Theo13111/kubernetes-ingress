@@ -1,7 +1,9 @@
 ---
 title: Policy resources
-toc: true
 weight: 500
+toc: true
+type: how-to
+product: NIC
 docs: DOCS-596
 ---
 
@@ -9,7 +11,7 @@ The Policy resource allows you to configure features like access control and rat
 
 The resource is implemented as a [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
 
-This document is the reference documentation for the Policy resource. An example of a Policy for access control is available in our [GitHub repository](https://github.com/nginxinc/kubernetes-ingress/blob/v{{< nic-version >}}/examples/custom-resources/access-control).
+This document is the reference documentation for the Policy resource. An example of a Policy for access control is available in our [GitHub repository](https://github.com/nginx/kubernetes-ingress/blob/v{{< nic-version >}}/examples/custom-resources/access-control).
 
 ## Prerequisites
 
@@ -111,9 +113,15 @@ rateLimit:
   zoneSize: 10M
   key: ${binary_remote_addr}
 ```
-{{< note >}} 
+{{< note >}}
 
 The feature is implemented using the NGINX [ngx_http_limit_req_module](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html).
+
+{{< /note >}}
+
+{{< note >}}
+
+When the [Zone Sync feature]({{< ref "/configuration/global-configuration/configmap-resource.md#zone-sync" >}}) is enabled with NGINX Plus, the rate limiting zone will be synchronized across all replicas in the cluster.  This means all replicas are aware of the requests that have been rate limited by other replicas in the cluster.
 
 {{< /note >}}
 
@@ -121,7 +129,7 @@ The feature is implemented using the NGINX [ngx_http_limit_req_module](https://n
 |Field | Description | Type | Required |
 | ---| ---| ---| --- |
 |``rate`` | The rate of requests permitted. The rate is specified in requests per second (r/s) or requests per minute (r/m). | ``string`` | Yes |
-|``key`` | The key to which the rate limit is applied. Can contain text, variables, or a combination of them. Variables must be surrounded by ``${}``. For example: ``${binary_remote_addr}``. Accepted variables are ``$binary_remote_addr``, ``$request_uri``, ``$url``, ``$http_``, ``$args``, ``$arg_``, ``$cookie_``. | ``string`` | Yes |
+|``key`` | The key to which the rate limit is applied. Can contain text, variables, or a combination of them. Variables must be surrounded by ``${}``. For example: ``${binary_remote_addr}``. Accepted variables are ``$binary_remote_addr``, ``$request_uri``, ``$url``, ``$http_``, ``$args``, ``$arg_``, ``$cookie_``, ``$jwt_claim_``. | ``string`` | Yes |
 |``zoneSize`` | Size of the shared memory zone. Only positive values are allowed. Allowed suffixes are ``k`` or ``m``, if none are present ``k`` is assumed. | ``string`` | Yes |
 |``delay`` | The delay parameter specifies a limit at which excessive requests become delayed. If not set all excessive requests are delayed. | ``int`` | No |
 |``noDelay`` | Disables the delaying of excessive requests while requests are being limited. Overrides ``delay`` if both are set. | ``bool`` | No |
@@ -129,7 +137,8 @@ The feature is implemented using the NGINX [ngx_http_limit_req_module](https://n
 |``dryRun`` | Enables the dry run mode. In this mode, the rate limit is not actually applied, but the number of excessive requests is accounted as usual in the shared memory zone. | ``bool`` | No |
 |``logLevel`` | Sets the desired logging level for cases when the server refuses to process requests due to rate exceeding, or delays request processing. Allowed values are ``info``, ``notice``, ``warn`` or ``error``. Default is ``error``. | ``string`` | No |
 |``rejectCode`` | Sets the status code to return in response to rejected requests. Must fall into the range ``400..599``. Default is ``503``. | ``int`` | No |
-|``scale`` | Enables a constant rate-limit by dividing the configured rate by the number of nginx-ingress pods currently serving traffic. This adjustment ensures that the rate-limit remains consistent, even as the number of nginx-pods fluctuates due to autoscaling. Note: This will not work properly if requests from a client are not evenly distributed accross all ingress pods (sticky sessions, long lived TCP-Connections with many requests etc.). In such cases using NGINX+'s zone-sync feature instead would give better results. | ``bool`` | No |
+|``scale`` | Enables a constant rate-limit by dividing the configured rate by the number of nginx-ingress pods currently serving traffic. This adjustment ensures that the rate-limit remains consistent, even as the number of nginx-pods fluctuates due to autoscaling. **This will not work properly if requests from a client are not evenly distributed across all ingress pods** (Such as with sticky sessions, long lived TCP Connections with many requests, and so forth). In such cases using [zone-sync]({{< ref "/configuration/global-configuration/configmap-resource.md#zone-sync" >}}) instead would give better results.  Enabling `zone-sync` will suppress this setting. | ``bool`` | No |
+|``condition`` | Add a condition to a rate-limit policy. | [ratelimit.condition](#ratelimitcondition) | No |
 {{% /table %}}
 
 {{< note >}}
@@ -150,6 +159,59 @@ policies:
 
 When you reference more than one rate limit policy, NGINX Ingress Controller will configure NGINX to use all referenced rate limits. When you define multiple policies, each additional policy inherits the `dryRun`, `logLevel`, and `rejectCode` parameters from the first policy referenced (`rate-limit-policy-one`, in the example above).
 
+### RateLimit.Condition
+
+RateLimit.Condition defines a condition for a rate limit policy. For example:
+
+```yaml
+condition:
+  jwt:
+    claim: user_details.level
+    match: premium
+  default: true
+```
+
+{{% table %}}
+|Field | Description | Type | Required |
+| ---| ---| ---| --- |
+|``jwt`` | defines a JWT condition to rate limit against. | [ratelimit.condition.jwt](#ratelimitconditionjwt) | No |
+|``default`` | sets the rate limit in this policy to be the default if no conditions are met. In a group of policies with the same JWT condition, only one policy can be the default. | ``bool`` | No |
+{{% /table %}}
+
+The rate limit policy with condition is designed to be used in combination with one or more rate limit policies. For example, multiple rate limit policies with [RateLimit.Condition.JWT](#ratelimitconditionjwt) can be used to apply different tiers of rate limit based on the value of a JWT claim. For a practical example of tiered rate limiting by the value of a JWT claim, see the example in our [GitHub repository](https://github.com/nginx/kubernetes-ingress/tree/v{{< nic-version >}}/examples/custom-resources/rate-limit-tiered-jwt-claim/README.md).
+
+### RateLimit.Condition.JWT
+{{< note >}}
+
+This feature is only available with NGINX Plus.
+
+{{< /note >}}
+
+RateLimit.Condition.JWT defines a condition for a rate limit by JWT claim. For example, here we define a condition for a rate limit policy that only applies to requests with a JWT claim `user_details.level` with a value `premium`:
+
+```yaml
+jwt:
+  claim: user_details.level
+  match: premium
+```
+
+The rate limit policy will only apply to requests that contain a JWT with the specified claim and value. For example, the following JWT payload will match the JWT condition:
+
+```json
+{
+  "user_details": {
+    "level": "premium"
+  }, 
+  "sub": "client1"
+}
+```
+
+{{% table %}}
+|Field | Description | Type | Required |
+| ---| ---| ---| --- |
+|``claim`` | Claim is the JWT claim to be rate limit by. Nested claims should be separated by ".". | ``string`` | Yes |
+|``match`` | the value of the claim to match against. | ``string`` | Yes |
+{{% /table %}}
 
 ### APIKey
 
@@ -192,10 +254,13 @@ data:
 {{% table %}}
 |Field | Description | Type | Required |
 | ---| ---| ---| --- |
+|``suppliedIn`` | `header` or `query`. | | Yes |
 |``suppliedIn.header`` | An array of headers that the API Key may appear in. | ``string[]`` | No |
 |``suppliedIn.query`` | An array of query params that the API Key may appear in. | ``string[]`` | No |
 |``clientSecret`` | The name of the Kubernetes secret that stores the API Key(s). It must be in the same namespace as the Policy resource. The secret must be of the type ``nginx.org/apikey``, and the API Key(s) must be stored in a key: val format where each key is a unique clientID and each value is a unique base64 encoded API Key  | ``string`` | Yes |
 {{% /table %}}
+
+{{<important>}}An APIKey Policy must include a minimum of one of the `suppliedIn.header` or `suppliedIn.query` parameters.  Both can also be supplied.{{</important>}}
 
 #### APIKey Merging Behavior
 
@@ -463,7 +528,7 @@ data:
 
 2. Adding the `crlFileName` field to your IngressMTLS policy spec with the name of the CRL file.
 
-{{< note >}} 
+{{< note >}}
 
 This configuration option should only be used when using a CRL that is larger than 1MiB.
 
@@ -597,7 +662,7 @@ The feature is implemented using the [reference implementation](https://github.c
 #### Prerequisites
 
 In order to use OIDC, you need to enable [zone synchronization](https://docs.nginx.com/nginx/admin-guide/high-availability/zone_sync/). If you don't set up zone synchronization, NGINX Plus will fail to reload.
-You also need to configure a resolver, which NGINX Plus will use to resolve the IDP authorization endpoint. You can find an example configuration [in our GitHub repository](https://github.com/nginxinc/kubernetes-ingress/blob/v{{< nic-version >}}/examples/custom-resources/oidc#step-7---configure-nginx-plus-zone-synchronization-and-resolver).
+You also need to configure a resolver, which NGINX Plus will use to resolve the IDP authorization endpoint. You can find an example configuration [in our GitHub repository](https://github.com/nginx/kubernetes-ingress/blob/v{{< nic-version >}}/examples/custom-resources/oidc#step-7---configure-nginx-plus-zone-synchronization-and-resolver).
 
 {{< warning >}}
 
@@ -699,7 +764,7 @@ waf:
 |``securityLog.enable`` | Enables security log. | ``bool`` | No |
 |``securityLog.apLogConf`` | The [App Protect WAF log conf]({{< relref "installation/integrations/app-protect-waf/configuration.md#waf-logs" >}}) resource. Accepts an optional namespace. Only works with ``apPolicy``. | ``string`` | No |
 |``securityLog.apLogBundle`` | The [App Protect WAF log bundle]({{< relref "installation/integrations/app-protect-waf/configuration.md#waf-bundles" >}}) resource. Only works with ``apBundle``. | ``string`` | No |
-|``securityLog.logDest`` | The log destination for the security log. Accepted variables are ``syslog:server=<ip-address &#124; localhost; fqdn>:<port>``, ``stderr``, ``<absolute path to file>``. Default is ``"syslog:server=127.0.0.1:514"``. | ``string`` | No |
+|``securityLog.logDest`` | The log destination for the security log. Only accepted variables are ``syslog:server=<ip-address &#124; localhost; fqdn>:<port>``, ``stderr``, ``<absolute path to file>``. | ``string`` | No |
 {{% /table %}}
 
 #### WAF Merging Behavior

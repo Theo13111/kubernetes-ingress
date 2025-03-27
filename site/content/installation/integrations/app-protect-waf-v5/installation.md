@@ -40,7 +40,7 @@ Get your system ready for building and pushing the NGINX Ingress Controller imag
 1. Clone the NGINX Ingress Controller repository:
 
     ```console
-    git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v{{< nic-version >}}
+    git clone https://github.com/nginx/kubernetes-ingress.git --branch v{{< nic-version >}}
     cd kubernetes-ingress
     ```
 
@@ -368,6 +368,8 @@ Add `waf-enforcer` image to the `containers` section:
   env:
     - name: ENFORCER_PORT
       value: "50000"
+    - name: ENFORCER_CONFIG_TIMEOUT
+      value: "0"
   volumeMounts:
     - name: app-protect-bd-config
       mountPath: /opt/app_protect/bd_config
@@ -380,7 +382,7 @@ Add `volumeMounts` as below:
 
 ```yaml
 ...
-- image: <my_docker_registery>:<version_tag>
+- image: <my_docker_registry>:<version_tag>
   imagePullPolicy: IfNotPresent
   name: nginx-plus-ingress
   volumeMounts:
@@ -399,7 +401,7 @@ Add `readOnlyRootFilesystem` to the NIC container and set valut to `true` as bel
 
 ```yaml
 ...
-- image: <my_docker_registery>:<version_tag>
+- image: <my_docker_registry>:<version_tag>
   imagePullPolicy: IfNotPresent
   name: nginx-plus-ingress
   ...
@@ -487,7 +489,7 @@ To enable the NGINX App Protect DoS Module:
 
 {{< include "installation/manifests/verify-pods-are-running.md" >}}
 
-For more information, see the [Configuration guide]({{< relref "installation/integrations/app-protect-waf-v5/configuration.md" >}}) and the NGINX Ingress Controller with App Protect version 5 example resources on GitHub [for VirtualServer resources](https://github.com/nginxinc/kubernetes-ingress/tree/v{{< nic-version >}}/examples/custom-resources/app-protect-waf-v5).
+For more information, see the [Configuration guide]({{< relref "installation/integrations/app-protect-waf-v5/configuration.md" >}}) and the NGINX Ingress Controller with App Protect version 5 example resources on GitHub [for VirtualServer resources](https://github.com/nginx/kubernetes-ingress/tree/v{{< nic-version >}}/examples/custom-resources/app-protect-waf-v5).
 
 ---
 
@@ -505,7 +507,8 @@ If you prefer not to build your own NGINX Ingress Controller image, you can use 
 {{< bootstrap-table "table table-bordered table-striped table-responsive" >}}
 | NIC Version | App Protect WAFv5 Version | Config Manager | Enforcer |
 | --- | --- | --- | --- |
-| {{< nic-version >}} | 32_5.144 | 5.3.0 | 5.3.0 |
+| {{< nic-version >}} | 33_5.264 | 5.5.0 | 5.5.0 |
+| 3.7.2 | 32_5.144 | 5.3.0 | 5.3.0 |
 | 3.6.2 | 32_5.48 | 5.2.0 | 5.2.0 |
 {{% /bootstrap-table %}}
 
