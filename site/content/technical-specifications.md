@@ -27,7 +27,6 @@ We test NGINX Ingress Controller on a range of Kubernetes platforms for each rel
 | 3.4.3 | 1.23 - 1.29 | 1.1.3 | 2.1.2 | 1.25.4 / R31 P1 |
 | 3.3.2 | 1.22 - 1.28 | 1.0.2 | 2.0.2 | 1.25.3 / R30 |
 | 3.2.1 | 1.22 - 1.27 | 0.18.1 | 1.5.1 | 1.25.2 / R30 |
-| 3.1.1 | 1.22 - 1.26 | 0.17.1 | 1.4.2 | 1.23.4 / R29 |
 {{% /bootstrap-table %}}
 
 ---
@@ -38,14 +37,18 @@ We provide the following Docker images, which include NGINX or NGINX Plus bundle
 
 ### Images with NGINX
 
-_All images include NGINX 1.27.4._
+{{< important >}}
+From release `v5.1.0` onwards, NGINX Ingress Controller will no longer provide binaries for the `armv7`, `s390x` & `ppc64le` architectures.
+{{< /important >}}
+
+_All images include NGINX 1.27.5._
 
 {{< bootstrap-table "table table-bordered table-responsive" >}}
 |<div style="width:200px">Name</div> | <div style="width:100px">Base image</div> | DockerHub image | Architectures |
-| ---| --- | --- | --- | --- |
-|Alpine-based image | ``nginx:1.27.4-alpine``,<br>based on on ``alpine:3.21`` | ``nginx/nginx-ingress:{{< nic-version >}}-alpine`` | arm/v7<br>arm64<br>amd64<br>ppc64le<br>s390x |
-|Debian-based image | ``nginx:1.27.4``,<br>based on on ``debian:12-slim`` | ``nginx/nginx-ingress:{{< nic-version >}}`` | arm/v7<br>arm64<br>amd64<br>ppc64le<br>s390x |
-|Ubi-based image | ``redhat/ubi9-minimal`` | ``nginx/nginx-ingress:{{< nic-version >}}-ubi`` | arm64<br>amd64<br>ppc64le<br>s390x |
+| ---| --- | --- | --- |
+|Alpine-based image | ``nginx:1.27.5-alpine``,<br>based on on ``alpine:3.21`` | ``nginx/nginx-ingress:{{< nic-version >}}-alpine`` | arm64<br>amd64 |
+|Debian-based image | ``nginx:1.27.5``,<br>based on on ``debian:12-slim`` | ``nginx/nginx-ingress:{{< nic-version >}}`` | arm64<br>amd64 |
+|Ubi-based image | ``redhat/ubi9-minimal`` | ``nginx/nginx-ingress:{{< nic-version >}}-ubi`` | arm64<br>amd64 |
 {{% /bootstrap-table %}}
 
 ---
@@ -61,22 +64,22 @@ _NGINX Plus images include NGINX Plus R34._
 NGINX Plus images are available through the F5 Container registry `private-registry.nginx.com`, explained in the [Get the NGINX Ingress Controller image with JWT]({{<relref "/installation/nic-images/get-image-using-jwt.md">}}) and [Get the F5 Registry NGINX Ingress Controller image]({{<relref "/installation/nic-images/get-registry-image.md">}}) topics.
 
 {{< bootstrap-table "table table-striped table-bordered table-responsive" >}}
-|<div style="width:200px">Name</div> | <div style="width:100px">Base image</div> | <div style="width:200px">Third-party modules</div> | F5 Container Registry Image | Architectures |
+|<div style="width:200px">Name</div> | <div style="width:100px">Base image</div> | <div style="width:200px">Additional modules</div> | F5 Container Registry Image | Architectures |
 | ---| ---| --- | --- | --- |
-|Alpine-based image | ``alpine:3.21`` | NGINX Plus & JavaScript  | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-alpine` | arm64<br>amd64 |
-|Alpine-based image with FIPS inside | ``alpine:3.21`` | NGINX Plus & JavaScript <br><br>FIPS module and OpenSSL configuration | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | arm64<br>amd64 |
-|Alpine-based image with NGINX App Protect WAF & FIPS inside | ``alpine:3.19`` | NGINX App Protect WAF<br><br>NGINX Plus & JavaScript<br><br>FIPS module and OpenSSL configuration | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | amd64 |
-|Alpine-based image with NGINX App Protect WAF v5 & FIPS inside | ``alpine:3.19`` | NGINX App Protect WAF v5<br><br>NGINX Plus & JavaScript<br><br>FIPS module and OpenSSL configuration | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | amd64 |
-|Debian-based image | ``debian:12-slim`` | NGINX Plus & JavaScript | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}` | arm64<br>amd64 |
-|Debian-based image with NGINX App Protect WAF | ``debian:12-slim`` | NGINX App Protect WAF<br><br>NGINX Plus & JavaScript<br><br>Zipkin and Datadog | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
-|Debian-based image with NGINX App Protect WAF v5 | ``debian:12-slim`` | NGINX App Protect WAF v5<br><br>NGINX Plus & JavaScript | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
-|Debian-based image with NGINX App Protect DoS | ``debian:12-slim`` | NGINX App Protect DoS<br><br>NGINX Plus & JavaScript | `nginx-ic-dos/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
-|Debian-based image with NGINX App Protect WAF and DoS | ``debian:12-slim`` | NGINX App Protect WAF and DoS<br><br>NGINX Plus & JavaScript | `nginx-ic-nap-dos/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
-|Ubi-based image | ``redhat/ubi9-minimal`` | NGINX Plus JavaScript module | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-ubi` | arm64<br>amd64 |
-|Ubi-based image with NGINX App Protect WAF | ``redhat/ubi9`` | NGINX App Protect WAF and NGINX Plus JavaScript module | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
-|Ubi-based image with NGINX App Protect WAF v5 | ``redhat/ubi9`` | NGINX App Protect WAF v5 and NGINX Plus JavaScript module | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
-|Ubi-based image with NGINX App Protect DoS | ``redhat/ubi8`` | NGINX App Protect DoS and NGINX Plus JavaScript module | `nginx-ic-dos/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
-|Ubi-based image with NGINX App Protect WAF and DoS | ``redhat/ubi8`` | NGINX App Protect WAF and DoS<br><br>NGINX Plus JavaScript module | `nginx-ic-nap-dos/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
+|Alpine-based image | ``alpine:3.21`` | NJS (NGINX JavaScript)<br>OpenTelemetry  | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-alpine` | arm64<br>amd64 |
+|Alpine-based image with FIPS inside | ``alpine:3.21`` | NJS (NGINX JavaScript)<br>OpenTelemetry<br>FIPS module and OpenSSL configuration | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | arm64<br>amd64 |
+|Alpine-based image with NGINX App Protect WAF & FIPS inside | ``alpine:3.19`` | NGINX App Protect WAF<br>NJS (NGINX JavaScript)<br>OpenTelemetry<br>FIPS module and OpenSSL configuration | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | amd64 |
+|Alpine-based image with NGINX App Protect WAF v5 & FIPS inside | ``alpine:3.19`` | NGINX App Protect WAF v5<br>NJS (NGINX JavaScript)<br>OpenTelemetry<br>FIPS module and OpenSSL configuration | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}-alpine-fips` | amd64 |
+|Debian-based image | ``debian:12-slim`` | NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}` | arm64<br>amd64 |
+|Debian-based image with NGINX App Protect WAF | ``debian:12-slim`` | NGINX App Protect WAF<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
+|Debian-based image with NGINX App Protect WAF v5 | ``debian:12-slim`` | NGINX App Protect WAF v5<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
+|Debian-based image with NGINX App Protect DoS | ``debian:12-slim`` | NGINX App Protect DoS<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-dos/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
+|Debian-based image with NGINX App Protect WAF and DoS | ``debian:12-slim`` | NGINX App Protect WAF and DoS<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap-dos/nginx-plus-ingress:{{< nic-version >}}` | amd64 |
+|Ubi-based image | ``redhat/ubi9-minimal`` | NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic/nginx-plus-ingress:{{< nic-version >}}-ubi` | arm64<br>amd64 |
+|Ubi-based image with NGINX App Protect WAF | ``redhat/ubi9`` | NGINX App Protect WAF<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
+|Ubi-based image with NGINX App Protect WAF v5 | ``redhat/ubi9`` | NGINX App Protect WAF v5<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap-v5/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
+|Ubi-based image with NGINX App Protect DoS | ``redhat/ubi8`` | NGINX App Protect DoS<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-dos/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
+|Ubi-based image with NGINX App Protect WAF and DoS | ``redhat/ubi8`` | NGINX App Protect WAF and DoS<br>NJS (NGINX JavaScript)<br>OpenTelemetry | `nginx-ic-nap-dos/nginx-plus-ingress:{{< nic-version >}}-ubi` | amd64 |
 {{% /bootstrap-table %}}
 
 ---

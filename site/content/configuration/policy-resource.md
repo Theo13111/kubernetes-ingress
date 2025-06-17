@@ -129,7 +129,7 @@ When the [Zone Sync feature]({{< ref "/configuration/global-configuration/config
 |Field | Description | Type | Required |
 | ---| ---| ---| --- |
 |``rate`` | The rate of requests permitted. The rate is specified in requests per second (r/s) or requests per minute (r/m). | ``string`` | Yes |
-|``key`` | The key to which the rate limit is applied. Can contain text, variables, or a combination of them. Variables must be surrounded by ``${}``. For example: ``${binary_remote_addr}``. Accepted variables are ``$binary_remote_addr``, ``$request_uri``, ``$url``, ``$http_``, ``$args``, ``$arg_``, ``$cookie_``, ``$jwt_claim_``. | ``string`` | Yes |
+|``key`` | The key to which the rate limit is applied. Can contain text, variables, or a combination of them. Variables must be surrounded by ``${}``. For example: ``${binary_remote_addr}``. Accepted variables are ``$binary_remote_addr``, ``$request_uri``,``$request_method``, ``$url``, ``$http_``, ``$args``, ``$arg_``, ``$cookie_``, ``$jwt_claim_``. | ``string`` | Yes |
 |``zoneSize`` | Size of the shared memory zone. Only positive values are allowed. Allowed suffixes are ``k`` or ``m``, if none are present ``k`` is assumed. | ``string`` | Yes |
 |``delay`` | The delay parameter specifies a limit at which excessive requests become delayed. If not set all excessive requests are delayed. | ``int`` | No |
 |``noDelay`` | Disables the delaying of excessive requests while requests are being limited. Overrides ``delay`` if both are set. | ``bool`` | No |
@@ -649,6 +649,7 @@ spec:
     endSessionEndpoint: https://idp.example.com/openid-connect/logout
     postLogoutRedirectURI: /
     accessTokenEnable: true
+    pkceEnable: false
 ```
 
 NGINX Plus will pass the ID of an authenticated user to the backend in the HTTP header `username`.
@@ -678,7 +679,7 @@ The OIDC policy defines a few internal locations that can't be customized: `/_jw
 |Field | Description | Type | Required |
 | ---| ---| ---| --- |
 |``clientID`` | The client ID provided by your OpenID Connect provider. | ``string`` | Yes |
-|``clientSecret`` | The name of the Kubernetes secret that stores the client secret provided by your OpenID Connect provider. It must be in the same namespace as the Policy resource. The secret must be of the type ``nginx.org/oidc``, and the secret under the key ``client-secret``, otherwise the secret will be rejected as invalid. | ``string`` | Yes |
+|``clientSecret`` | The name of the Kubernetes secret that stores the client secret provided by your OpenID Connect provider. It must be in the same namespace as the Policy resource. The secret must be of the type ``nginx.org/oidc``, and the secret under the key ``client-secret``, otherwise the secret will be rejected as invalid. If PKCE is enabled, this should be not configured. | ``string`` | Yes |
 |``authEndpoint`` | URL for the authorization endpoint provided by your OpenID Connect provider. | ``string`` | Yes |
 |``authExtraArgs`` | A list of extra URL arguments to pass to the authorization endpoint provided by your OpenID Connect provider. Arguments must be URL encoded, multiple arguments may be included in the list, for example ``[ arg1=value1, arg2=value2 ]`` | ``string[]`` | No |
 |``tokenEndpoint`` | URL for the token endpoint provided by your OpenID Connect provider. | ``string`` | Yes |
@@ -689,6 +690,7 @@ The OIDC policy defines a few internal locations that can't be customized: `/_jw
 |``postLogoutRedirectURI`` | URI to redirect to after the logout has been performed. Requires ``endSessionEndpoint``. The default is ``/_logout``. | ``string`` | No |
 |``zoneSyncLeeway`` | Specifies the maximum timeout in milliseconds for synchronizing ID/access tokens and shared values between Ingress Controller pods. The default is ``200``. | ``int`` | No |
 |``accessTokenEnable`` | Option of whether Bearer token is used to authorize NGINX to access protected backend. | ``boolean`` | No |
+|``pkceEnable`` | Switches Proof Key for Code Exchange on. The OpenID client needs to be in public mode. `clientSecret` is not used in this mode. | ``boolean`` | No |
 {{% /table %}}
 
 {{< note >}}
