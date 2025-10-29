@@ -82,7 +82,7 @@ USER 101
 
 
 ############################################# Base image for Alpine #############################################
-FROM nginx:1.29.2-alpine@sha256:61e01287e546aac28a3f56839c136b31f590273f3b41187a36f46f6a03bbfe22 AS alpine
+FROM nginx:1.29.3-alpine@sha256:b23ea6c10814fccb32ac20485c74168ebefa1c3544a3dddfcb33494d24270df8 AS alpine
 ARG PACKAGE_REPO
 ARG NGINX_OSS_VERSION
 
@@ -100,7 +100,7 @@ RUN --mount=type=bind,from=nginx-files,src=nginx_signing.rsa.pub,target=/etc/apk
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.29.2@sha256:029d4461bd98f124e531380505ceea2072418fdf28752aa73b7b273ba3048903 AS debian
+FROM nginx:1.29.3@sha256:f36d51007aa734028a6ea852adc76f074c9e5f966a2044f094325a22f566a9e1 AS debian
 ARG NGINX_OSS_VERSION
 
 RUN --mount=type=bind,from=nginx-files,src=nginx_signing.key,target=/tmp/nginx_signing.key \
