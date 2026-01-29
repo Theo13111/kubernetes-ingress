@@ -84,7 +84,7 @@ jobs:
 
       - name: Fetch Cached Signed Binary Artifacts
         id: binary-cache-sign
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/tarballs
           key: nginx-ingress-release-${{ steps.vars.outputs.go_code_md5 }}
@@ -440,7 +440,7 @@ jobs:
           ref: ${{ inputs.release_branch }}
 
       - name: Fetch Binary Artifacts from Cache
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/dist
           key: nginx-ingress-${{ needs.variables.outputs.go_code_md5 }}
@@ -463,7 +463,7 @@ jobs:
         if: ${{ needs.variables.outputs.binary_cache_sign_hit != 'true' }}
 
       - name: Store Tarball Artifacts in Cache
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/tarballs
           key: nginx-ingress-release-${{ needs.variables.outputs.go_code_md5 }}
@@ -486,7 +486,7 @@ jobs:
           ref: ${{ inputs.release_branch }}
 
       - name: Fetch Cached Tarball Artifacts
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           key: nginx-ingress-release-${{ needs.variables.outputs.go_code_md5 }}
           path: ${{ github.workspace }}/tarballs
@@ -530,7 +530,7 @@ jobs:
           ref: ${{ inputs.release_branch }}
 
       - name: Fetch Cached Tarball Artifacts
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           key: nginx-ingress-release-${{ needs.variables.outputs.go_code_md5 }}
           path: ${{ github.workspace }}/tarballs
