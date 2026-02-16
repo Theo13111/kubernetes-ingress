@@ -1,6 +1,6 @@
 module github.com/nginx/kubernetes-ingress
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
@@ -10,7 +10,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.19
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
-	github.com/gruntwork-io/terratest v0.55.0
+	github.com/gruntwork-io/terratest v0.56.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/nginx/nginx-plus-go-client/v2 v2.4.0
 	github.com/nginx/nginx-prometheus-exporter v1.5.1
@@ -27,7 +27,7 @@ require (
 	k8s.io/client-go v0.35.1
 	k8s.io/code-generator v0.35.1
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
-	sigs.k8s.io/controller-tools v0.20.0
+	sigs.k8s.io/controller-tools v0.20.1
 	sigs.k8s.io/yaml v1.6.0
 )
 
