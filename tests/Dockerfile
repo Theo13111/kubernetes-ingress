@@ -5,7 +5,7 @@ FROM kindest/node:v1.35.1@sha256:05d7bcdefbda08b4e038f644c4df690cdac3fba8b06f828
 # this is here so we can grab the latest version of skopeo and have dependabot keep it up to date
 FROM quay.io/skopeo/stable:v1.22.0
 
-FROM python:3.15.0a7@sha256:cd937feede96070ecf333c670f0bf9e8e3a490849cd12afbf80bc8c6ff2edbfd
+FROM python:3.15.0a7@sha256:ab0b9b5f51871fa645119a0f4a2772857ee4ff5e59c51bc62847c1b30852d9fc
 
 RUN apt-get update \
 	&& apt-get install -y curl git apache2-utils \
