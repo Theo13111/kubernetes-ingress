@@ -469,7 +469,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for UBI8 with NGINX Plus and App Protect WAF #############################################
-FROM redhat/ubi8@sha256:b36f428a59959b1e7f7dc2df55a4c2308be445d61a3854c6b817e114f719b81f AS ubi-8-plus-nap
+FROM redhat/ubi8@sha256:6dc1b728df2fc2c5b3e90f6c16fdd342dab32e75f80785dd1052fb40898cc726 AS ubi-8-plus-nap
 ARG NGINX_PLUS_VERSION
 ARG BUILD_OS
 
@@ -508,7 +508,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for UBI8 with NGINX Plus and App Protect WAFv5  #############################################
-FROM redhat/ubi8@sha256:b36f428a59959b1e7f7dc2df55a4c2308be445d61a3854c6b817e114f719b81f AS ubi-8-plus-nap-v5
+FROM redhat/ubi8@sha256:6dc1b728df2fc2c5b3e90f6c16fdd342dab32e75f80785dd1052fb40898cc726 AS ubi-8-plus-nap-v5
 ARG NGINX_PLUS_VERSION
 
 ENV NGINX_VERSION=${NGINX_PLUS_VERSION}
