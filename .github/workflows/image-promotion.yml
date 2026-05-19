@@ -190,7 +190,7 @@ jobs:
         if: ${{ needs.checks.outputs.binary_cache_hit != 'true' }}
 
       - name: Build binaries
-        uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
+        uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7.2.2
         with:
           version: latest
           args: build --snapshot --clean
@@ -476,7 +476,7 @@ jobs:
 
       - name: Run Docker Scout vulnerability scanner
         id: docker-scout
-        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
+        uses: docker/scout-action@cd72f264beff1cd72735de31148b9d3244a0234a # v1.21.0
         with:
           command: cves
           image: ${{ steps.meta.outputs.tags }}
@@ -565,7 +565,7 @@ jobs:
 
       - name: Run Docker Scout vulnerability scanner
         id: docker-scout
-        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
+        uses: docker/scout-action@cd72f264beff1cd72735de31148b9d3244a0234a # v1.21.0
         with:
           command: cves
           image: ${{ steps.meta.outputs.tags }}
@@ -661,7 +661,7 @@ jobs:
 
       - name: Run Docker Scout vulnerability scanner
         id: docker-scout
-        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
+        uses: docker/scout-action@cd72f264beff1cd72735de31148b9d3244a0234a # v1.21.0
         with:
           command: cves
           image: ${{ steps.meta.outputs.tags }}
