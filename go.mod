@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.28
-	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.38.0
+	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.38.1
 	github.com/cert-manager/cert-manager v1.20.3
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/gkampitakis/go-snaps v0.5.23
