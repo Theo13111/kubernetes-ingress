@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.36
-	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.39.5
+	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.40.0
 	github.com/cert-manager/cert-manager v1.21.1
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/gkampitakis/go-snaps v0.5.23
@@ -13,12 +13,12 @@ require (
 	github.com/gruntwork-io/terratest v1.0.1
 	github.com/jinzhu/copier v0.4.0
 	github.com/nginx/nginx-plus-go-client/v2 v2.4.0
-	github.com/nginx/nginx-prometheus-exporter v1.5.1
+	github.com/nginx/nginx-prometheus-exporter v1.5.3
 	github.com/nginx/telemetry-exporter v0.1.5
 	github.com/nginxinc/nginx-service-mesh v1.7.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/spiffe/go-spiffe/v2 v2.8.1
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.45.0
 	k8s.io/api v0.36.3

@@ -67,8 +67,8 @@ github.com/aws/aws-sdk-go-v2/service/kms v1.50.5 h1:nEzwx/ZlpUZ2Y6WztsgYmfBh5Ixd
 github.com/aws/aws-sdk-go-v2/service/kms v1.50.5/go.mod h1:GBO/aaEi47QldDVoqw2CsM2UZQDoqDiFIMJD/ztHPs0=
 github.com/aws/aws-sdk-go-v2/service/lambda v1.89.1 h1:JxHLwNK5mIKsh2Q0APTSijdzkk5ccI4gyvYdar1JU/0=
 github.com/aws/aws-sdk-go-v2/service/lambda v1.89.1/go.mod h1:7qoh/MlWG5QCnZwq9bvdXomEAkmumayXcjEjIemIV7U=
-github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.39.5 h1:bZN+I5Rnn56F1RS+I3l19/RmR+ZZTlHl9V19er8qAOw=
-github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.39.5/go.mod h1:TJ0g/EZUwxJPPSItxbqnjCHPpKX2j5p5Aw7Bc7qIMJs=
+github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.40.0 h1:6yWWdgu85+Tq8Nck5Lm26jF0bNanaj+lnU4wVey9zrg=
+github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.40.0/go.mod h1:TJ0g/EZUwxJPPSItxbqnjCHPpKX2j5p5Aw7Bc7qIMJs=
 github.com/aws/aws-sdk-go-v2/service/rds v1.118.1 h1:cywOPYUFOSOAjrovJNxuBXd6SV3osiP3KJ5p412IEJQ=
 github.com/aws/aws-sdk-go-v2/service/rds v1.118.1/go.mod h1:BaS59j6evm68pt9EaJnb7tnTOaT0MY4rJeESKh8RKKY=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.63.3 h1:595VT+Zw2/wNZ7Hcf4AgZXZf2/2irBtVMx6m5/NzwGE=
@@ -331,8 +331,8 @@ github.com/nginx/nginx-plus-go-client/v2 v2.4.0 h1:4c7V57CLCZUOxQCUcS9G8a5MClzdm
 github.com/nginx/nginx-plus-go-client/v2 v2.4.0/go.mod h1:P+dIP2oKYzFoyf/zlLWQa8Sf+fHb+CclOKzxAjxpvug=
 github.com/nginx/nginx-plus-go-client/v3 v3.0.1 h1:SU8MoRQVSa1aXqNUI3fc+OA9GM30aqAhV4yBWs9tD2s=
 github.com/nginx/nginx-plus-go-client/v3 v3.0.1/go.mod h1:PjlGB6drb5RCWnUp1XDTlzKFPRI2a3ePg2kNCb1AN94=
-github.com/nginx/nginx-prometheus-exporter v1.5.1 h1:44jvKTJ4S0SydKbXw7H9V5VjcGdM3tdOPDd4em86GZQ=
-github.com/nginx/nginx-prometheus-exporter v1.5.1/go.mod h1:5b+M6fx4v6UQsihjrN/UeBBR2DabEsfgTjhqG/Xt12w=
+github.com/nginx/nginx-prometheus-exporter v1.5.3 h1:jyVHCkDlbu2fZyChXPyebGcMRupxu5YKj7+PTEMppEI=
+github.com/nginx/nginx-prometheus-exporter v1.5.3/go.mod h1:4M5ZmmcsiFhXGHsc7d5adwxt5Ak1lWMKo4H55V9Ruak=
 github.com/nginx/telemetry-exporter v0.1.5 h1:niCAHMii9a74UW3GuqpBt/n1/FIAKrZtTxtEH0MGSiU=
 github.com/nginx/telemetry-exporter v0.1.5/go.mod h1:O42B/CP5u5eNKNGd0OKKLoeUVkHPLwgrWcCRRX0KFgY=
 github.com/nginxinc/nginx-service-mesh v1.7.0 h1:oxKr+Jdbxkos10VTy5xF2UHCcmfIhqWNlsOK/zPnZDM=
@@ -386,8 +386,9 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
-github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
 github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=
+github.com/stretchr/objx v0.5.3 h1:jmXUvGomnU1o3W/V5h2VEradbpJDwGrzugQQvL0POH4=
+github.com/stretchr/objx v0.5.3/go.mod h1:rDQraq+vQZU7Fde9LOZLr8Tax6zZvy4kuNKF+QYS+U0=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
@@ -397,8 +398,8 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
-github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/stretchr/testify v1.12.0 h1:K6Mr6jO9JICuend/5xzTM03ydSV3vdNRYAdPSukj8uI=
+github.com/stretchr/testify v1.12.0/go.mod h1:bOYBZb5qJ00vPzWfIqBUZPaxK8jWiXc6d3ErP4Ca9Gw=
 github.com/texttheater/golang-levenshtein v1.0.1 h1:+cRNoVrfiwufQPhoMzB6N0Yf/Mqajr6t1lOv8GyGE2U=
 github.com/texttheater/golang-levenshtein v1.0.1/go.mod h1:PYAKrbF5sAiq9wd+H82hs7gNaen0CplQ9uvm6+enD/8=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
