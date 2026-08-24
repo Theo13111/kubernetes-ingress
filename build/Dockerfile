@@ -15,7 +15,7 @@ FROM ghcr.io/nginx/dependencies/nginx-ubi:ubi9@sha256:2d8c02fdf916aa836b9c011316
 FROM ghcr.io/nginx/alpine-fips:0.4.0-alpine3.19@sha256:0b400b81b5f403d69535a54839296ae35ced374eb1bb04db5b4282f380fef09a AS alpine-fips-3.19
 FROM ghcr.io/nginx/alpine-fips:0.4.0-alpine3.21@sha256:f3f988fa9c08796d29282cfdd40b7dd3dbdf0e895f70a7c92f3f299bca6d9fcd AS alpine-fips-3.21
 FROM redhat/ubi9-minimal:9.8@sha256:8eb2830d0936237fc13a1f2f7e45aecf90d69043380ad167fad0343632937f41 AS ubi-minimal
-FROM golang:1.26-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83 AS golang-builder
+FROM golang:1.27-alpine@sha256:4c9fe60190a2a3350ddc51de80d0224b8a6698d12bdfc999fee45ea9d6c46dbc AS golang-builder
 
 ############################################# NGINX files #############################################
 FROM scratch AS nginx-files
@@ -82,7 +82,7 @@ USER 101
 
 
 ############################################# Base image for Alpine #############################################
-FROM nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 AS alpine
+FROM nginx:1.31.4-alpine@sha256:db35bfc6b2951e7f8a72db5db120288c127ffaeeb4a6d4b95a26fead017d5913 AS alpine
 ARG PACKAGE_REPO
 ARG NGINX_OSS_VERSION
 
@@ -100,7 +100,7 @@ RUN --mount=type=bind,from=nginx-files,src=nginx_signing.rsa.pub,target=/etc/apk
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.31.3@sha256:8541484afbc9c8a5a8a99b379568ebbc957f658583ec9448fc43104229c03cf8 AS debian
+FROM nginx:1.31.4@sha256:0d4374c710a9649200e84f8ef8dbdd4fa76c0c107839cd50f1e42a63916b0f2e AS debian
 ARG NGINX_OSS_VERSION
 
 RUN --mount=type=bind,from=nginx-files,src=nginx_signing.key,target=/tmp/nginx_signing.key \
