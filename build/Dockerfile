@@ -100,7 +100,7 @@ RUN --mount=type=bind,from=nginx-files,src=nginx_signing.rsa.pub,target=/etc/apk
 
 
 ############################################# Base image for Debian #############################################
-FROM nginx:1.31.4@sha256:0d4374c710a9649200e84f8ef8dbdd4fa76c0c107839cd50f1e42a63916b0f2e AS debian
+FROM nginx:1.31.4@sha256:b34848eff6db786b6b1282d3a9c3fd0b5563dfb6d261df4923378b419e0d24f0 AS debian
 ARG NGINX_OSS_VERSION
 
 RUN --mount=type=bind,from=nginx-files,src=nginx_signing.key,target=/tmp/nginx_signing.key \
